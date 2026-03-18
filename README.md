@@ -1,23 +1,33 @@
 # Crypto Technical Analysis Skill
 
-> MCP-powered cryptocurrency market data and technical analysis toolkit
+[![English](https://img.shields.io/badge/lang-English-blue.svg)](readme.md) [![中文](https://img.shields.io/badge/lang-中文-red.svg)](README_CN.md)
 
-An AI-ready skill that provides real-time crypto market data from OKX exchange and comprehensive technical indicator calculations. Designed for seamless integration with MCP (Model Context Protocol) clients like Claude, OpenCode, and other AI agents.
+> Shell-based cryptocurrency market data and technical analysis toolkit
+
+An AI-ready skill that provides real-time crypto market data from OKX exchange and comprehensive technical indicator calculations. Designed for seamless command-line usage.
 
 ## Features
 
-### Market Data Tools (MCP)
+### Market Data Commands
 
-| Tool | Description |
-|------|-------------|
-| `get_candles` | K-line/OHLCV data (1m to 1W timeframes) |
-| `get_funding_rate` | Perpetual contract funding rates |
-| `get_open_interest` | Open interest with USD valuation |
-| `get_long_short_ratio` | Elite trader positioning data |
-| `get_top_trader_position_ratio` | Top 5% traders' long/short position ratio |
-| `get_option_oi_volume_ratio` | Option call/put OI and volume ratio |
-| `get_fear_greed_index` | Fear and Greed Index from alternative.me |
-| `get_liquidation` | Historical liquidation records |
+| Command | Description |
+|---------|-------------|
+| `candles` | K-line/OHLCV data (1m to 1W timeframes) |
+| `funding-rate` | Perpetual contract funding rates |
+| `open-interest` | Open interest with USD valuation |
+| `long-short-ratio` | Elite trader positioning data |
+| `top-trader-ratio` | Top 5% traders' long/short position ratio |
+| `option-ratio` | Option call/put OI and volume ratio |
+| `fear-greed` | Fear and Greed Index from alternative.me |
+| `liquidation` | Historical liquidation records |
+
+### Technical Analysis Commands
+
+| Command | Description |
+|---------|-------------|
+| `indicators` | Complete technical indicators (MA, RSI, MACD, etc.) |
+| `summary` | Quick technical analysis summary |
+| `support-resistance` | Support/resistance levels and Fibonacci retracement |
 
 ### Technical Indicators
 
@@ -45,7 +55,7 @@ An AI-ready skill that provides real-time crypto market data from OKX exchange a
 ### Prerequisites
 
 - Python 3.11+
-- Network access to OKX (proxy may be required in some regions)
+- Network access to OKX API
 
 ### Setup
 
@@ -56,198 +66,109 @@ cd crypto-skill
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Make script executable (Linux/macOS)
+chmod +x crypto.sh
 ```
 
 ## Usage
 
-### Option 1: MCP Integration (Recommended for AI Agents)
+### Shell Script (Recommended)
 
-Add to your MCP client configuration:
-
-```json
-{
-  "mcpServers": {
-    "crypto": {
-      "command": "python",
-      "args": ["/path/to/crypto-skill/scripts/crypto_mcp_server.py"],
-      "env": {
-        "PYTHONIOENCODING": "utf-8"
-      }
-    }
-  }
-}
-```
-
-Then your AI agent can call tools:
-
-```python
-# Get BTC 1-hour candles
-skill_mcp(
-  mcp_name="crypto",
-  tool_name="get_candles",
-  arguments={"inst_id": "BTC-USDT", "bar": "1H", "limit": 100}
-)
+```bash
+# Get K-line data
+./crypto.sh candles BTC-USDT --bar 1H --limit 100
 
 # Get funding rate
-skill_mcp(
-  mcp_name="crypto",
-  tool_name="get_funding_rate",
-  arguments={"inst_id": "ETH-USDT-SWAP", "limit": 50}
-)
+./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
 
-# Get fear and greed index
-skill_mcp(
-  mcp_name="crypto",
-  tool_name="get_fear_greed_index",
-  arguments={"days": 30}
-)
+# Get technical indicators
+./crypto.sh indicators ETH-USDT --bar 4H --last-n 5
+
+# Get Fear and Greed Index
+./crypto.sh fear-greed --days 30
+
+# Get support and resistance levels
+./crypto.sh support-resistance BTC-USDT --bar 1D
 ```
 
-### Option 2: Direct Python API
+### Direct Python CLI
 
-```python
-from scripts.technical_analysis import TechnicalAnalysis
-
-# Fetch data and calculate all indicators
-ta = TechnicalAnalysis.from_api("BTC-USDT", bar="1H", limit=100)
-indicators = ta.get_all_indicators()
-
-# Get latest values
-latest = indicators.iloc[-1]
-print(f"Price: {latest['close']:.2f}")
-print(f"RSI(14): {latest['rsi14']:.2f}")
-print(f"MACD DIF: {latest['macd_dif']:.4f}")
-print(f"ADX: {latest['dmi_adx']:.2f}")
+```bash
+python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
+python scripts/cli.py indicators BTC-USDT --bar 1D --last-n 10
 ```
 
-### Option 3: Batch Analysis
+### Command Reference
 
-```python
-from scripts.technical_analysis import analyze_all_assets
-
-# Analyze multiple assets at once
-results = analyze_all_assets(
-    inst_ids=['BTC-USDT', 'ETH-USDT', 'SOL-USDT'],
-    bar='1D',
-    limit=100
-)
-# Results saved to result/ folder with timestamp
+#### candles - K-Line Data
+```bash
+./crypto.sh candles <inst_id> [--bar BAR] [--limit LIMIT]
+# Example: ./crypto.sh candles BTC-USDT --bar 1H --limit 100
 ```
 
-### Option 4: Derivatives Data
+#### funding-rate - Funding Rate
+```bash
+./crypto.sh funding-rate <inst_id> [--limit LIMIT]
+# Example: ./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+```
 
-```python
-from scripts.technical_analysis import TechnicalAnalysis
+#### indicators - Technical Indicators
+```bash
+./crypto.sh indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+# Example: ./crypto.sh indicators ETH-USDT --bar 4H --last-n 10
+```
 
-# Funding rate
-funding = TechnicalAnalysis.fetch_funding_rate("BTC-USDT-SWAP", limit=10)
-
-# Open interest
-oi = TechnicalAnalysis.fetch_open_interest("BTC-USDT-SWAP", period='1H', limit=10)
-
-# Long/Short ratio
-ls = TechnicalAnalysis.fetch_long_short_ratio("BTC", period='1H', limit=10)
-
-# Top trader position ratio
-top = TechnicalAnalysis.fetch_top_trader_position_ratio("BTC-USDT-SWAP", period='1H', limit=10)
-
-# Option call/put ratio
-opt = TechnicalAnalysis.fetch_option_oi_volume_ratio("BTC", period='8H')
+#### fear-greed - Fear and Greed Index
+```bash
+./crypto.sh fear-greed [--days DAYS]
+# Example: ./crypto.sh fear-greed --days 30
 ```
 
 ## Project Structure
 
 ```
 crypto-skill/
-├── README.md                       # This file
-├── requirements.txt                # Python dependencies
-├── SKILL.md                        # Skill documentation
+├── crypto.sh                   # Shell entry point
+├── README.md                   # This file
+├── requirements.txt            # Python dependencies
+├── SKILL.md                    # Skill documentation
 │
 ├── scripts/
-│   ├── crypto_data.py              # OKX API wrapper
-│   ├── crypto_mcp_server.py        # MCP protocol server
-│   └── technical_analysis.py       # TA indicator engine
+│   ├── cli.py                  # CLI implementation
+│   ├── crypto_data.py          # OKX API wrapper
+│   └── technical_analysis.py   # TA indicator engine
 │
 └── references/
-    └── indicators.md               # Technical indicator guide
+    └── indicators.md           # Technical indicator guide
 ```
 
-## Technical Analysis Module
+## Python API (Advanced)
 
-### Available Methods
-
-#### Trend Indicators
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `calculate_ma(period)` | period: int | pd.Series | Simple Moving Average |
-| `calculate_ema(period)` | period: int | pd.Series | Exponential Moving Average |
-| `calculate_dmi(period=14)` | period: int | (+DI, -DI, ADX) | Directional Movement Index |
-
-#### Momentum Indicators
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `calculate_rsi(period=14)` | period: int | pd.Series | Relative Strength Index |
-| `calculate_macd(fast=12, slow=26, signal=9)` | fast, slow, signal: int | (DIF, DEA, Histogram) | MACD |
-| `calculate_kdj(n=9, m1=3, m2=3)` | n, m1, m2: int | (K, D, J) | KDJ Stochastic |
-
-#### Volatility Indicators
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `calculate_bollinger_bands(period=20, std_dev=2)` | period, std_dev: int | (Upper, Middle, Lower) | Bollinger Bands |
-| `calculate_atr(period=14)` | period: int | pd.Series | Average True Range |
-
-#### Volume Indicators
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `calculate_obv()` | - | pd.Series | On-Balance Volume |
-
-#### Price Structure
-
-| Method | Parameters | Returns | Description |
-|--------|------------|---------|-------------|
-| `calculate_fibonacci_retracement(high, low)` | high, low: float | Dict[str, float] | Fibonacci levels |
-| `find_support_resistance(window=5)` | window: int | (supports[], resistances[]) | Key price levels |
-
-### get_all_indicators() Output
-
-Returns a DataFrame with all calculated indicators:
-
-| Category | Columns |
-|----------|---------|
-| Price | open, high, low, close, volume |
-| Moving Averages | ma5, ma10, ma20, ma50, ema12, ema26 |
-| RSI | rsi6, rsi14 |
-| MACD | macd_dif, macd_dea, macd_hist |
-| KDJ | kdj_k, kdj_d, kdj_j |
-| DMI | dmi_plus_di, dmi_minus_di, dmi_adx |
-| Bollinger | bb_upper, bb_middle, bb_lower, bb_width |
-| ATR | atr14 |
-| OBV | obv |
-| Price Change | price_change_1, price_change_5, price_change_20 |
-| Volume Change | volume_change, volume_sma20 |
-
-## Configuration
-
-### Proxy Settings
-
-The project defaults to using a local proxy at `127.0.0.1:7890`. To change this, edit `scripts/crypto_data.py`:
+For programmatic access, you can import the modules directly:
 
 ```python
-DEFAULT_PROXY = {
-    "http": "http://127.0.0.1:7890",
-    "https": "http://127.0.0.1:7890"
-}
+from scripts.crypto_data import get_okx_candles, get_fear_greed_index
+from scripts.technical_analysis import TechnicalAnalysis
+
+# Fetch K-line data
+df = get_okx_candles("BTC-USDT", bar="1H", limit=100)
+
+# Calculate indicators
+kline_data = df.to_dict(orient="records")
+ta = TechnicalAnalysis(kline_data=kline_data, inst_id="BTC-USDT", bar="1H")
+indicators = ta.get_all_indicators()
+print(indicators.tail(5))
 ```
 
-Or disable proxy entirely when calling functions:
+## Output Format
 
-```python
-df = get_okx_candles("BTC-USDT", use_proxy=False)
-```
+All commands output JSON to stdout, making it easy to:
+
+- Pipe to other tools: `./crypto.sh candles BTC-USDT | jq '.[0]'`
+- Save to files: `./crypto.sh indicators BTC-USDT > analysis.json`
+- Process in scripts: `result=$(./crypto.sh fear-greed --days 7)`
 
 ## Requirements
 
@@ -260,14 +181,7 @@ urllib3>=2.0.0
 
 ## Disclaimer
 
-This project is for educational and research purposes only. **Not financial advice.**
-
-Trade at your own risk. The market can stay irrational longer than you can stay solvent.
-
-## Acknowledgments
-
-- **[Oh My OpenCode](https://github.com/code-yeongyu/oh-my-opencode.git)** - The AI agent framework
-- **[OpenCode](https://github.com/anomalyco/opencode.git)** - The foundation for AI coding
+**⚠️ Important Notice:** This skill only provides technical analysis and position recommendations, and does **not** support direct trading. For the sake of ==cybersecurity== and ==being responsible for your own funds==, it is **strongly discouraged** to entrust your cryptocurrency to an AI agent entirely, no matter how powerful the agent is.
 
 ## License
 

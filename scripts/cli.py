@@ -212,6 +212,7 @@ def cmd_option_ratio(args) -> None:
     df = get_option_open_interest_volume_ratio(
         ccy=args.ccy,
         period=args.period,
+        limit=args.limit,
     )
     if df is not None:
         records = _clean_df_to_records(df)
@@ -436,6 +437,9 @@ Examples:
     p_opt.add_argument("ccy", help="Currency, e.g., BTC, ETH")
     p_opt.add_argument(
         "--period", default="8H", help="Time granularity: 8H,1D (default: 8H)"
+    )
+    p_opt.add_argument(
+        "--limit", type=int, default=100, help="Number of data points (default: 100)"
     )
     p_opt.set_defaults(func=cmd_option_ratio)
 

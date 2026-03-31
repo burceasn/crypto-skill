@@ -1,8 +1,8 @@
 # 加密货币技术分析技能
 
-[![English](https://img.shields.io/badge/lang-English-blue.svg)](README.md) [![中文](https://img.shields.io/badge/lang-中文-red.svg)](readme_cn.md)
+[![English](https://img.shings.io/badge/lang-English-blue.svg)](README.md) [![中文](https://img.shings.io/badge/lang-中文-red.svg)](README_CN.md)
 
-> 基于 Shell 脚本的加密货币市场数据与技术分析工具包
+> 基于 Python 的加密货币市场数据与技术分析工具包
 
 一个 AI 就绪的技能，提供来自 OKX 交易所的实时加密货币市场数据和全面的技术指标计算。专为命令行使用而设计。
 
@@ -66,75 +66,75 @@ cd crypto-skill
 
 # 安装依赖
 pip install -r requirements.txt
-
-# 添加执行权限 (Linux/macOS)
-chmod +x crypto.sh
 ```
 
 ## 使用方法
 
-### Shell 脚本（推荐）
+### Python CLI
 
 ```bash
 # 获取 K 线数据
-./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 
 # 获取资金费率
-./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 
 # 获取技术指标
-./crypto.sh indicators ETH-USDT --bar 4H --last-n 5
+python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
 
 # 获取恐惧贪婪指数
-./crypto.sh fear-greed --days 30
+python scripts/cli.py fear-greed --days 30
 
 # 获取支撑阻力位
-./crypto.sh support-resistance BTC-USDT --bar 1D
-```
-
-### 直接使用 Python CLI
-
-```bash
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
-python scripts/cli.py indicators BTC-USDT --bar 1D --last-n 10
+python scripts/cli.py support-resistance BTC-USDT --bar 1D
 ```
 
 ### 命令参考
 
 #### candles - K线数据
 ```bash
-./crypto.sh candles <inst_id> [--bar BAR] [--limit LIMIT]
-# 示例: ./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
+# 示例: python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 ```
 
 #### funding-rate - 资金费率
 ```bash
-./crypto.sh funding-rate <inst_id> [--limit LIMIT]
-# 示例: ./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
+# 示例: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 ```
 
 #### indicators - 技术指标
 ```bash
-./crypto.sh indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
-# 示例: ./crypto.sh indicators ETH-USDT --bar 4H --last-n 10
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+# 示例: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ```
 
 #### fear-greed - 恐惧贪婪指数
 ```bash
-./crypto.sh fear-greed [--days DAYS]
-# 示例: ./crypto.sh fear-greed --days 30
+python scripts/cli.py fear-greed [--days DAYS]
+# 示例: python scripts/cli.py fear-greed --days 30
+```
+
+#### long-short-ratio - 多空比
+```bash
+python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
+# 示例: python scripts/cli.py long-short-ratio BTC --period 1H --limit 50
+```
+
+#### option-ratio - 期权看涨看跌比
+```bash
+python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
+# 示例: python scripts/cli.py option-ratio BTC --period 8H --limit 20
 ```
 
 ## 项目结构
 
 ```
 crypto-skill/
-├── crypto.sh                   # Shell 入口
 ├── README.md                   # 英文文档
 ├── README_CN.md                # 中文文档（本文件）
-├── requirements.txt            # Python 依赖
 ├── SKILL.md                    # 技能文档
+├── requirements.txt            # Python 依赖
 │
 ├── scripts/
 │   ├── cli.py                  # CLI 实现
@@ -142,7 +142,8 @@ crypto-skill/
 │   └── technical_analysis.py   # 技术分析引擎
 │
 └── references/
-    └── indicators.md           # 技术指标指南
+    ├── INDICATORS.md           # 技术指标指南
+    └── STRATEGY.md             # 交易策略指南
 ```
 
 ## Python API（高级用法）
@@ -167,9 +168,9 @@ print(indicators.tail(5))
 
 所有命令输出 JSON 到标准输出，便于：
 
-- 管道处理：`./crypto.sh candles BTC-USDT | jq '.[0]'`
-- 保存文件：`./crypto.sh indicators BTC-USDT > analysis.json`
-- 脚本处理：`result=$(./crypto.sh fear-greed --days 7)`
+- 管道处理：`python scripts/cli.py candles BTC-USDT | jq '.[0]'`
+- 保存文件：`python scripts/cli.py indicators BTC-USDT > analysis.json`
+- 脚本处理：`result=$(python scripts/cli.py fear-greed --days 7)`
 
 ## 依赖要求
 

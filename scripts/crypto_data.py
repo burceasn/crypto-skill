@@ -243,7 +243,7 @@ def get_long_short_ratio(
     base_url = (
         "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio"
     )
-    params = {"ccy": ccy, "period": period, "limit": min(limit, 100)}
+    params = {"ccy": ccy, "period": period, "limit": limit}
     try:
         logger.info(
             "Fetching OKX long/short ratio: ccy=%s period=%s limit=%d",
@@ -267,6 +267,9 @@ def get_long_short_ratio(
         df["longShortPosRatio"] = pd.to_numeric(df["longShortPosRatio"])
         df = df[["datetime", "longShortPosRatio"]]
         df = df.sort_values("datetime", ascending=False).reset_index(drop=True)
+        # Ensure we return exactly limit rows (API may return more or ignore limit)
+        if len(df) > limit:
+            df = df.head(limit)
         return df
     except Exception as e:
         _handle_request_error(e)
@@ -372,14 +375,17 @@ def get_top_trader_long_short_position_ratio(
 
 
 def get_option_open_interest_volume_ratio(
-    ccy: str, period: str = "8H"
+    ccy: str, period: str = "8H", limit: int = 100
 ) -> Optional[pd.DataFrame]:
     """Get call/put option open interest ratio and volume ratio."""
     url = "https://www.okx.com/api/v5/rubik/stat/option/open-interest-volume-ratio"
     params = {"ccy": ccy, "period": period}
     try:
         logger.info(
-            "Fetching OKX option OI/volume ratio: ccy=%s period=%s", ccy, period
+            "Fetching OKX option OI/volume ratio: ccy=%s period=%s limit=%d",
+            ccy,
+            period,
+            limit,
         )
         resp = requests.get(url, params=params, timeout=DEFAULT_TIMEOUT)
         resp.raise_for_status()
@@ -396,6 +402,9 @@ def get_option_open_interest_volume_ratio(
         df["volRatio"] = pd.to_numeric(df["volRatio"])
         df = df[["datetime", "oiRatio", "volRatio"]]
         df = df.sort_values("datetime", ascending=False).reset_index(drop=True)
+        # Ensure we return exactly limit rows (API may return more)
+        if len(df) > limit:
+            df = df.head(limit)
         return df
     except Exception as e:
         _handle_request_error(e)

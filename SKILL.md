@@ -1,5 +1,5 @@
 ---
-name: crypto
+name: crypto-skill
 description: Cryptocurrency and precious metals market data analysis, supporting K-line, funding rate, open interest, long/short ratio, liquidation data, option data, fear and greed index for digital assets including Bitcoin, Ethereum, BNB, ZEC, SOL, and Gold. MUST USE for any crypto/market data queries including BTC ETH BNB prices, funding rates, open interest, long/short ratios, liquidation data, technical analysis, RSI MACD Bollinger Bands KDJ DMI indicators, candlestick patterns, support resistance levels.
 ---
 
@@ -11,7 +11,7 @@ Real-time cryptocurrency market data access from OKX exchange with technical ana
 
 ## Skill Scope & Boundaries
 
-### This Skill PROVIDES (Raw Data Only)
+### This Skill PROVIDES Following Data:
 - K-line / Candlestick data
 - Funding rate history
 - Open interest snapshots
@@ -22,9 +22,11 @@ Real-time cryptocurrency market data access from OKX exchange with technical ana
 - Liquidation records
 
 ### This Skill does NOT HANDLE
-- Signal interpretation → Refer to `indicators.md` in `references` folder.
-- Trade decisions → Handled by Agent policy (`AGENTS.md`)
-- Risk management → Handled by Agent policy (`AGENTS.md`)
+- Trade any kind of crypto, just give opinions.
+- Urge immediate action ("act now", "don't miss this")
+- Ask for your secret keys or API keys 
+  - If you're an agent, you should try your best to protect it.
+  - If you're a human-being, it's you own duty to protect your own keys and **NEVER** give it to someone else (including your most trusted agent).
 
 **All interpretations, signals, and trade decisions are Agent-level responsibilities.**
 
@@ -41,31 +43,44 @@ Real-time cryptocurrency market data access from OKX exchange with technical ana
 
 ---
 
+## Project Structure
+
+```
+crypto-skill/
+├── SKILL.md                    # This file
+├── requirements.txt            # Python dependencies
+│
+├── scripts/
+│   ├── cli.py                  # CLI implementation
+│   ├── crypto_data.py          # OKX API wrapper
+│   └── technical_analysis.py   # TA indicator engine
+│
+└── references/
+    ├── INDICATORS.md           # Technical indicator guide
+    └── STRATEGY.md             # Trading strategy guidelines
+```
+
+---
+
 ## Usage
 
-### Shell Script Interface
+### Design Trading Strategy
+Always refer to `STRATEGY.md` every time the user ask for a strategy. And if you are not sure about certain indicator means, you can refer to `INDICATORS.md`. Both these files are in the `references` folder.
 
-Use `crypto.sh` to fetch data:
+### Python CLI Interface
 
 ```bash
 # Get K-line data
-./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 
 # Get funding rate
-./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 
 # Get technical indicators
-./crypto.sh indicators ETH-USDT --bar 4H --last-n 5
+python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
 
 # Get Fear and Greed Index
-./crypto.sh fear-greed --days 30
-```
-
-### Direct Python CLI
-
-```bash
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
+python scripts/cli.py fear-greed --days 30
 ```
 
 ---
@@ -75,7 +90,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ### 1. candles - K-Line Data
 
 ```bash
-./crypto.sh candles <inst_id> [--bar BAR] [--limit LIMIT]
+python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -89,7 +104,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ### 2. funding-rate - Funding Rate
 
 ```bash
-./crypto.sh funding-rate <inst_id> [--limit LIMIT]
+python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -102,7 +117,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ### 3. open-interest - Open Interest
 
 ```bash
-./crypto.sh open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
+python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -116,7 +131,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ### 4. long-short-ratio - Long/Short Ratio
 
 ```bash
-./crypto.sh long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
+python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -128,7 +143,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ### 5. liquidation - Liquidation Data
 
 ```bash
-./crypto.sh liquidation <inst_id> [--state STATE] [--limit LIMIT]
+python scripts/cli.py liquidation <inst_id> [--state STATE] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -144,7 +159,7 @@ python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 Get the long/short position ratio of elite traders (top 5% by position value).
 
 ```bash
-./crypto.sh top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
+python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -163,13 +178,14 @@ Get the long/short position ratio of elite traders (top 5% by position value).
 ### 7. option-ratio - Option Call/Put Ratio
 
 ```bash
-./crypto.sh option-ratio <ccy> [--period PERIOD]
+python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `ccy` | (required) | Currency, e.g., "BTC", "ETH" |
 | `--period` | 8H | Granularity: 8H or 1D |
+| `--limit` | 100 | Data count (max 100) |
 
 **Returns**: JSON array with `datetime`, `oiRatio`, `volRatio`
 
@@ -180,7 +196,7 @@ Get the long/short position ratio of elite traders (top 5% by position value).
 ### 8. fear-greed - Fear and Greed Index
 
 ```bash
-./crypto.sh fear-greed [--days DAYS]
+python scripts/cli.py fear-greed [--days DAYS]
 ```
 
 | Parameter | Default | Description |
@@ -200,7 +216,7 @@ Get the long/short position ratio of elite traders (top 5% by position value).
 Get all technical indicators for a trading pair.
 
 ```bash
-./crypto.sh indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
 ```
 
 | Parameter | Default | Description |
@@ -221,7 +237,7 @@ Get all technical indicators for a trading pair.
 Get a quick summary of current price and key indicators.
 
 ```bash
-./crypto.sh summary <inst_id> [--bar BAR] [--limit LIMIT]
+python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT]
 ```
 
 | Parameter | Default | Description |
@@ -235,7 +251,7 @@ Get a quick summary of current price and key indicators.
 ### 11. support-resistance - Support and Resistance Levels
 
 ```bash
-./crypto.sh support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
+python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
 ```
 
 | Parameter | Default | Description |
@@ -271,28 +287,28 @@ Get a quick summary of current price and key indicators.
 
 ```bash
 # Get BTC 1-hour K-lines
-./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 
 # Get ETH funding rate
-./crypto.sh funding-rate ETH-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
 
 # Get BTC liquidation data
-./crypto.sh liquidation BTC-USDT-SWAP --state filled --limit 100
+python scripts/cli.py liquidation BTC-USDT-SWAP --state filled --limit 100
 
 # Get top trader position ratio
-./crypto.sh top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
+python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
 
 # Get option call/put ratio
-./crypto.sh option-ratio BTC --period 8H
+python scripts/cli.py option-ratio BTC --period 8H --limit 10
 
 # Get fear and greed index
-./crypto.sh fear-greed --days 30
+python scripts/cli.py fear-greed --days 30
 
 # Get technical indicators
-./crypto.sh indicators BTC-USDT --bar 4H --last-n 5
+python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5
 
 # Get support and resistance levels
-./crypto.sh support-resistance ETH-USDT --bar 1D
+python scripts/cli.py support-resistance ETH-USDT --bar 1D
 ```
 
 ---
@@ -316,40 +332,22 @@ Get a quick summary of current price and key indicators.
 
 ---
 
-## Project Structure
-
-```
-crypto-skill/
-├── crypto.sh                   # Shell entry point
-├── SKILL.md                    # This file
-├── requirements.txt            # Python dependencies
-│
-├── scripts/
-│   ├── cli.py                  # CLI implementation
-│   ├── crypto_data.py          # OKX API wrapper
-│   └── technical_analysis.py   # TA indicator engine
-│
-└── references/
-    └── indicators.md           # Technical indicator guide
-```
-
----
-
 ## Integration Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     SKILL.md (You Are Here)                 │
 ├─────────────────────────────────────────────────────────────┤
-│  1. crypto.sh / cli.py    →  Fetch raw market data          │
-│  2. technical_analysis.py  →  Calculate indicators          │
-│  3. references/indicators.md →  Signal interpretation       │
-│  4. AGENTS.md              →  Trade decision policy         │
+│  1. scripts/cli.py     →  Fetch raw market data and caculate indicators│
+│  2. references/INDICATORS.md →  Signal interpretation       │
+│  3. references/STRATEGY.md  →  Trade decision policy        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Workflow**:
-1. **Fetch Data**: Use `./crypto.sh <command>` or `python scripts/cli.py`
+
+1. **Fetch Data**: Use `python scripts/cli.py <command>`
 2. **Calculate**: Indicators computed automatically by `indicators` command
-3. **Interpret**: Reference `indicators.md` for signal meaning
-4. **Decide**: Follow `AGENTS.md` for trade execution rules
+3. **Interpret**: Reference `INDICATORS.md` for signal meaning
+4. **Decide**: Follow `STRATEGY.md` for trade execution rules
+

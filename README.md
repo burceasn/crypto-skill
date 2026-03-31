@@ -1,8 +1,8 @@
 # Crypto Technical Analysis Skill
 
-[![English](https://img.shields.io/badge/lang-English-blue.svg)](readme.md) [![中文](https://img.shields.io/badge/lang-中文-red.svg)](README_CN.md)
+[![English](https://img.shields.io/badge/lang-English-blue.svg)](README.md) [![中文](https://img.shields.io/badge/lang-中文-red.svg)](README_CN.md)
 
-> Shell-based cryptocurrency market data and technical analysis toolkit
+> Python-based cryptocurrency market data and technical analysis toolkit
 
 An AI-ready skill that provides real-time crypto market data from OKX exchange and comprehensive technical indicator calculations. Designed for seamless command-line usage.
 
@@ -66,74 +66,75 @@ cd crypto-skill
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Make script executable (Linux/macOS)
-chmod +x crypto.sh
 ```
 
 ## Usage
 
-### Shell Script (Recommended)
+### Python CLI
 
 ```bash
 # Get K-line data
-./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 
 # Get funding rate
-./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 
 # Get technical indicators
-./crypto.sh indicators ETH-USDT --bar 4H --last-n 5
+python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
 
 # Get Fear and Greed Index
-./crypto.sh fear-greed --days 30
+python scripts/cli.py fear-greed --days 30
 
 # Get support and resistance levels
-./crypto.sh support-resistance BTC-USDT --bar 1D
-```
-
-### Direct Python CLI
-
-```bash
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
-python scripts/cli.py indicators BTC-USDT --bar 1D --last-n 10
+python scripts/cli.py support-resistance BTC-USDT --bar 1D
 ```
 
 ### Command Reference
 
 #### candles - K-Line Data
 ```bash
-./crypto.sh candles <inst_id> [--bar BAR] [--limit LIMIT]
-# Example: ./crypto.sh candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
+# Example: python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 ```
 
 #### funding-rate - Funding Rate
 ```bash
-./crypto.sh funding-rate <inst_id> [--limit LIMIT]
-# Example: ./crypto.sh funding-rate BTC-USDT-SWAP --limit 50
+python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
+# Example: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 ```
 
 #### indicators - Technical Indicators
 ```bash
-./crypto.sh indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
-# Example: ./crypto.sh indicators ETH-USDT --bar 4H --last-n 10
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+# Example: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
 ```
 
 #### fear-greed - Fear and Greed Index
 ```bash
-./crypto.sh fear-greed [--days DAYS]
-# Example: ./crypto.sh fear-greed --days 30
+python scripts/cli.py fear-greed [--days DAYS]
+# Example: python scripts/cli.py fear-greed --days 30
+```
+
+#### long-short-ratio - Long/Short Ratio
+```bash
+python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
+# Example: python scripts/cli.py long-short-ratio BTC --period 1H --limit 50
+```
+
+#### option-ratio - Option Call/Put Ratio
+```bash
+python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
+# Example: python scripts/cli.py option-ratio BTC --period 8H --limit 20
 ```
 
 ## Project Structure
 
 ```
 crypto-skill/
-├── crypto.sh                   # Shell entry point
-├── README.md                   # This file
-├── requirements.txt            # Python dependencies
+├── README.md                   # This file (English)
+├── README_CN.md                # Chinese documentation
 ├── SKILL.md                    # Skill documentation
+├── requirements.txt            # Python dependencies
 │
 ├── scripts/
 │   ├── cli.py                  # CLI implementation
@@ -141,7 +142,8 @@ crypto-skill/
 │   └── technical_analysis.py   # TA indicator engine
 │
 └── references/
-    └── indicators.md           # Technical indicator guide
+    ├── INDICATORS.md           # Technical indicator guide
+    └── STRATEGY.md             # Trading strategy guidelines
 ```
 
 ## Python API (Advanced)
@@ -166,9 +168,9 @@ print(indicators.tail(5))
 
 All commands output JSON to stdout, making it easy to:
 
-- Pipe to other tools: `./crypto.sh candles BTC-USDT | jq '.[0]'`
-- Save to files: `./crypto.sh indicators BTC-USDT > analysis.json`
-- Process in scripts: `result=$(./crypto.sh fear-greed --days 7)`
+- Pipe to other tools: `python scripts/cli.py candles BTC-USDT | jq '.[0]'`
+- Save to files: `python scripts/cli.py indicators BTC-USDT > analysis.json`
+- Process in scripts: `result=$(python scripts/cli.py fear-greed --days 7)`
 
 ## Requirements
 

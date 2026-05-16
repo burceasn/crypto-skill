@@ -231,9 +231,8 @@ def cmd_fear_greed(args) -> None:
         output_error("Failed to fetch Fear and Greed Index")
 
 
-def cmd_indicators(args) -> None:
-    """Get complete technical indicators."""
-    # Fetch candles first
+def _load_ta(args) -> Optional[TechnicalAnalysis]:
+    """Fetch candles and return a TechnicalAnalysis instance, or None on failure."""
     df = get_okx_candles(
         inst_id=args.inst_id,
         bar=args.bar,
@@ -241,17 +240,23 @@ def cmd_indicators(args) -> None:
     )
     if df is None or df.empty:
         output_error(f"Failed to fetch candle data for {args.inst_id}")
-        return
+        return None
 
-    # Convert to records for TechnicalAnalysis
     kline_data = df.to_dict(orient="records")
     for row in kline_data:
         row["datetime"] = str(row["datetime"])
 
-    # Calculate indicators
     ta = TechnicalAnalysis(kline_data=kline_data, inst_id=args.inst_id, bar=args.bar)
     if ta.data.empty:
         output_error(f"K-line data for {args.inst_id} is empty")
+        return None
+    return ta
+
+
+def cmd_indicators(args) -> None:
+    """Get complete technical indicators."""
+    ta = _load_ta(args)
+    if ta is None:
         return
 
     indicators_df = ta.get_all_indicators()
@@ -264,25 +269,8 @@ def cmd_indicators(args) -> None:
 
 def cmd_summary(args) -> None:
     """Get technical analysis summary."""
-    # Fetch candles first
-    df = get_okx_candles(
-        inst_id=args.inst_id,
-        bar=args.bar,
-        limit=args.limit,
-    )
-    if df is None or df.empty:
-        output_error(f"Failed to fetch candle data for {args.inst_id}")
-        return
-
-    # Convert to records for TechnicalAnalysis
-    kline_data = df.to_dict(orient="records")
-    for row in kline_data:
-        row["datetime"] = str(row["datetime"])
-
-    # Calculate and summarize
-    ta = TechnicalAnalysis(kline_data=kline_data, inst_id=args.inst_id, bar=args.bar)
-    if ta.data.empty:
-        output_error(f"K-line data for {args.inst_id} is empty")
+    ta = _load_ta(args)
+    if ta is None:
         return
 
     result = _analyze_single_asset(ta, args.inst_id)
@@ -295,25 +283,8 @@ def cmd_summary(args) -> None:
 
 def cmd_support_resistance(args) -> None:
     """Get support/resistance levels."""
-    # Fetch candles first
-    df = get_okx_candles(
-        inst_id=args.inst_id,
-        bar=args.bar,
-        limit=args.limit,
-    )
-    if df is None or df.empty:
-        output_error(f"Failed to fetch candle data for {args.inst_id}")
-        return
-
-    # Convert to records for TechnicalAnalysis
-    kline_data = df.to_dict(orient="records")
-    for row in kline_data:
-        row["datetime"] = str(row["datetime"])
-
-    # Calculate support/resistance
-    ta = TechnicalAnalysis(kline_data=kline_data, inst_id=args.inst_id, bar=args.bar)
-    if ta.data.empty:
-        output_error(f"K-line data for {args.inst_id} is empty")
+    ta = _load_ta(args)
+    if ta is None:
         return
 
     support, resistance = ta.find_support_resistance(window=args.window)

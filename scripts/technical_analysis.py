@@ -2,14 +2,11 @@
 """
 Technical analysis module - pure computation, no network access.
 
-Data must be provided externally (e.g., from MCP tools).
+Data must be provided externally (e.g., from cli.py or other callers).
 This module does NOT fetch data from any API.
 """
 
-import json
-import os
 import logging
-from datetime import datetime
 from typing import Dict, List, Optional
 import pandas as pd
 import numpy as np
@@ -83,6 +80,61 @@ class TechnicalAnalysis:
         indicators["macd_dif"] = dif
         indicators["macd_dea"] = dea
         indicators["macd_hist"] = (dif - dea) * 2
+
+        high = df["high"] if "high" in df else pd.Series(dtype=float)
+        low = df["low"] if "low" in df else pd.Series(dtype=float)
+
+        # --- ATR (14) + ATR% ---
+        tr1 = high - low
+        tr2 = (high - close.shift(1)).abs()
+        tr3 = (low - close.shift(1)).abs()
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+        atr14 = tr.ewm(alpha=1 / 14, adjust=False).mean()
+        indicators["atr14"] = atr14
+        indicators["atr14_pct"] = atr14 / close * 100
+
+        # --- ADX / +DI / -DI (14) ---
+        up_move = high - high.shift(1)
+        down_move = low.shift(1) - low
+        plus_dm = pd.Series(np.where((up_move > down_move) & (up_move > 0), up_move, 0.0), index=df.index)
+        minus_dm = pd.Series(np.where((down_move > up_move) & (down_move > 0), down_move, 0.0), index=df.index)
+        smooth_plus_dm = plus_dm.ewm(alpha=1 / 14, adjust=False).mean()
+        smooth_minus_dm = minus_dm.ewm(alpha=1 / 14, adjust=False).mean()
+        plus_di = 100 * smooth_plus_dm / atr14
+        minus_di = 100 * smooth_minus_dm / atr14
+        dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di)
+        adx = dx.ewm(alpha=1 / 14, adjust=False).mean()
+        indicators["plus_di"] = plus_di
+        indicators["minus_di"] = minus_di
+        indicators["adx"] = adx
+
+        # --- Bollinger Bands (20, 2) ---
+        bb_mid = close.rolling(window=20).mean()
+        bb_std = close.rolling(window=20).std()
+        bb_upper = bb_mid + 2 * bb_std
+        bb_lower = bb_mid - 2 * bb_std
+        indicators["bb_upper"] = bb_upper
+        indicators["bb_mid"] = bb_mid
+        indicators["bb_lower"] = bb_lower
+        indicators["bb_pctb"] = (close - bb_lower) / (bb_upper - bb_lower)
+        indicators["bb_bandwidth"] = (bb_upper - bb_lower) / bb_mid * 100
+
+        # --- KDJ (9, 3, 3) ---
+        low_9 = low.rolling(window=9).min()
+        high_9 = high.rolling(window=9).max()
+        rsv = (close - low_9) / (high_9 - low_9) * 100
+        k = rsv.ewm(com=2, adjust=False).mean()
+        d = k.ewm(com=2, adjust=False).mean()
+        j = 3 * k - 2 * d
+        indicators["kdj_k"] = k
+        indicators["kdj_d"] = d
+        indicators["kdj_j"] = j
+
+        # --- OBV ---
+        vol_series = vol if vol is not None else pd.Series(0, index=df.index)
+        direction = pd.Series(np.where(close > close.shift(1), 1, np.where(close < close.shift(1), -1, 0)), index=df.index)
+        indicators["obv"] = (vol_series * direction).cumsum()
+
         return indicators
 
     def calculate_fibonacci_retracement(
@@ -136,62 +188,10 @@ class TechnicalAnalysis:
         return supports, resistances
 
 
-def analyze_all_assets(
-    data_file: Optional[str] = None,
-    kline_map: Optional[Dict[str, List[Dict]]] = None,
-):
-    """
-    Analyze multiple assets.
-
-    Args:
-        data_file:  Path to a JSON file mapping asset -> {"kline_1d": [...]}
-                    (for local/offline use)
-        kline_map:  Dict mapping inst_id -> list of candle dicts
-                    (for use when data is already fetched via MCP)
-    """
-    results = {}
-    if data_file:
-        try:
-            with open(data_file, "r", encoding="utf-8") as f:
-                all_data = json.load(f)
-        except FileNotFoundError:
-            logger.info("data_file not found")
-            return {}
-        for asset, data in all_data.items():
-            kline_data = data.get("kline_1d", [])
-            ta = TechnicalAnalysis(kline_data)
-            result = _analyze_single_asset(ta, asset)
-            if result:
-                results[asset] = result
-    elif kline_map:
-        for inst_id, kline_data in kline_map.items():
-            ta = TechnicalAnalysis(kline_data, inst_id=inst_id)
-            if ta.data.empty:
-                continue
-            result = _analyze_single_asset(ta, inst_id)
-            if result:
-                results[inst_id] = result
-    else:
-        return {}
-    result_dir = "result"
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(result_dir, f"technical_analysis_{timestamp}.json")
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2, ensure_ascii=False, default=str)
-    return results
-
-
 def _analyze_single_asset(ta: TechnicalAnalysis, asset: str) -> Optional[Dict]:
-    if ta.data is None or ta.data.empty:  # type: ignore
+    """Analyze a single asset and return summary (indicators + metadata)."""
+    if ta.data is None or ta.data.empty:
         return None
-    indicators = (
-        ta.get_all_indicators().iloc[-1].to_dict()
-        if hasattr(ta, "get_all_indicators")
-        else {}
-    )
-    data_summary = {
-        "total_candles": len(ta.data)  # type: ignore
-    }
+    indicators = ta.get_all_indicators().iloc[-1].to_dict()
+    data_summary = {"total_candles": len(ta.data)}
     return {"asset": asset, "indicators": indicators, "data_summary": data_summary}

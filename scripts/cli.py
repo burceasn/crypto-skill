@@ -50,6 +50,7 @@ import argparse
 import json
 import sys
 import math
+from toon_format import encode
 from typing import Any, Dict, List, Optional
 
 from crypto_data import (
@@ -111,7 +112,7 @@ def _clean_any(obj: Any) -> Any:
 
 def output_json(data: Any) -> None:
     """Output JSON to stdout."""
-    print(json.dumps(_clean_any(data), indent=2, ensure_ascii=False))
+    print(encode(_clean_any(data)))
 
 
 def output_error(message: str) -> None:

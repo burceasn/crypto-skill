@@ -4,13 +4,13 @@
 
 ---
 
-## 1. Trend Indicators
+## Trend Indicators
 
 ### MA (Moving Average)
 
 **Purpose**: Smooth price fluctuations, reveal trend direction.
 
-**Formula**: `MA(N) = (C1 + C2 + ... + CN) / N`
+**Formula**: $MA(N) = \dfrac{C_1 + C_2 + \cdots + C_N}{N}$
 
 | Period | Meaning | Application |
 |--------|---------|-------------|
@@ -21,6 +21,7 @@
 | MA200 | Long-term average | Bull/Bear divider, institutional focus |
 
 **Signals**:
+
 | Pattern | Signal | Meaning |
 |---------|--------|---------|
 | Golden Cross (short MA crosses above long MA) | Buy | Short-term momentum > long-term |
@@ -35,9 +36,10 @@
 
 **Purpose**: More weight on recent prices, faster response than MA.
 
-**Formula**: `EMA(t) = α × Price(t) + (1-α) × EMA(t-1)`, where `α = 2/(N+1)`
+**Formula**: $EMA(t) = \alpha \cdot Price(t) + (1 - \alpha) \cdot EMA(t-1)$, where $\alpha = \dfrac{2}{N+1}$
 
 **Key Periods**:
+
 - **EMA12**: Short-term momentum, MACD fast line basis
 - **EMA26**: Medium-term momentum, MACD slow line basis
 
@@ -57,6 +59,7 @@
 **Parameter**: Period = 14
 
 **ADX Interpretation**:
+
 | ADX Value | Market State | Trading Strategy |
 |-----------|--------------|------------------|
 | < 20 | No trend / Ranging | Range trade, avoid trend strategies |
@@ -65,21 +68,27 @@
 | 40-50 | Strong trend | Add to position, watch for extremes |
 | > 50 | Extreme trend | Prepare exit, reversal possible |
 
-**Direction**: `+DI > -DI && ADX > 25` = Long | `-DI > +DI && ADX > 25` = Short
+**Direction**: $\text{Signal} = 
+\begin{cases}
+\text{Long}, & \text{if } +DI > -DI \text{ and } ADX > 25 \\
+\text{Short}, & \text{if } -DI > +DI \text{ and } ADX > 25 \\
+\text{None}, & \text{otherwise}
+\end{cases}$
 
 ---
 
-## 2. Momentum Indicators
+## Momentum Indicators
 
-### RSI (Relative Strength Index) ★ Core Indicator
+### RSI (Relative Strength Index) 
 
 **Purpose**: Measure overbought/oversold conditions and momentum.
 
-**Formula**: `RSI = 100 - (100 / (1 + RS))`, where `RS = Avg Gain / Avg Loss`
+**Formula**: $RSI = 100 - \frac{100}{1 + RS}$, where $RS = \frac{\text{Avg Gain}}{\text{Avg Loss}}$
 
 **Parameter**: Period = 14
 
 **Zone Analysis**:
+
 | RSI Range | State | Action |
 |-----------|-------|--------|
 | > 80 | Extreme Overbought | Strong short signal, high reversal probability |
@@ -97,6 +106,7 @@
 | Hidden Divergence | Price pullback but RSI holds | Trend continuation signal |
 
 **Trend Context**:
+
 - **Uptrend**: RSI 40-50 = support zone (add to longs)
 - **Downtrend**: RSI 50-60 = resistance zone (add to shorts)
 
@@ -107,15 +117,19 @@
 **Purpose**: Track momentum changes via EMA differential.
 
 **Formula**:
-```
-DIF (Fast Line) = EMA12 - EMA26
-DEA (Signal Line) = 9-period EMA of DIF
-Histogram = (DIF - DEA) × 2
-```
+$$
+\begin{align}
+\text{DIF (Fast Line)} &= EMA_{12} - EMA_{26} \\
+\text{DEA (Signal Line)} &= EMA_9(\text{DIF}) \\
+\text{Histogram} &= (\text{DIF} - \text{DEA}) \times 2
+\end{align}
+$$
+
 
 **Signal Categories**:
 
 **1. Crossovers**:
+
 | Pattern | Location | Meaning |
 |---------|----------|---------|
 | Golden Cross (DIF above DEA) | Above zero | Strong trend continuation |
@@ -129,6 +143,7 @@ Histogram = (DIF - DEA) × 2
 - Zero line cross = Major trend transition
 
 **3. Histogram**:
+
 | Pattern | Meaning |
 |---------|---------|
 | Red bars expanding | Bullish momentum increasing |
@@ -143,12 +158,15 @@ Histogram = (DIF - DEA) × 2
 **Purpose**: Measure price position relative to range, fast overbought/oversold detection.
 
 **Formula**:
-```
-RSV = (Close - N-day Low) / (N-day High - N-day Low) × 100
-K = 2/3 × Previous K + 1/3 × RSV
-D = 2/3 × Previous D + 1/3 × K
-J = 3K - 2D
-```
+$$
+\begin{align}
+RSV &= \frac{Close - Low_N}{High_N - Low_N} \times 100 \\
+K &= \frac{2}{3} \times K_{prev} + \frac{1}{3} \times RSV \\
+D &= \frac{2}{3} \times D_{prev} + \frac{1}{3} \times K \\
+J &= 3K - 2D
+\end{align}
+$$
+
 
 **Parameters**: N=9, M1=3, M2=3
 
@@ -160,25 +178,29 @@ J = 3K - 2D
 | K crosses above D | Golden Cross | Buy signal (more valid at low levels) |
 | K crosses below D | Death Cross | Sell signal (more valid at high levels) |
 
-**J-line Extremes**: J > 100 or J < 0 = Short-term extreme, high reversal probability.
+**J-line Extremes**: $J > 100$ or $J < 0$ = Short-term extreme, high reversal probability.
 
 ---
 
-## 3. Volatility Indicators
+## Volatility Indicators
 
 ### Bollinger Bands
 
 **Purpose**: Dynamic support/resistance based on standard deviation.
 
 **Formula**:
-```
-Middle = MA(20)
-Upper = MA(20) + 2 × StdDev
-Lower = MA(20) - 2 × StdDev
-%B = (Price - Lower) / (Upper - Lower)
-```
+$$
+\begin{align}
+\text{Middle} &= MA_{20} \\
+\text{Upper} &= MA_{20} + 2 \times \sigma \\
+\text{Lower} &= MA_{20} - 2 \times \sigma \\
+\%B &= \frac{\text{Price} - \text{Lower}}{\text{Upper} - \text{Lower}}
+\end{align}
+$$
+
 
 **Price Position**:
+
 | Position | State | Action |
 |----------|-------|--------|
 | Touch upper band | Overbought | Watch for pullback |
@@ -204,12 +226,16 @@ Lower = MA(20) - 2 × StdDev
 **Purpose**: Measure volatility for stop-loss/take-profit distance.
 
 **Formula**:
-```
-TR = Max(High-Low, |High-PrevClose|, |Low-PrevClose|)
-ATR = 14-period MA of TR
-```
+$$
+\begin{align}
+TR &= \max(High - Low,\; \lvert High - PrevClose \rvert,\; \lvert Low - PrevClose \rvert) \\
+ATR &= MA_{14}(TR)
+\end{align}
+$$
+
 
 **Applications**:
+
 | Use Case | Formula | Notes |
 |----------|---------|-------|
 | Stop Loss | Entry ± 1.5-2 × ATR | Avoid normal volatility stop-outs |
@@ -223,7 +249,7 @@ ATR = 14-period MA of TR
 
 ---
 
-## 4. Volume Indicators
+## Volume Indicators
 
 ### OBV (On-Balance Volume)
 
@@ -235,6 +261,7 @@ ATR = 14-period MA of TR
 - Close = Previous Close: OBV unchanged
 
 **Signals**:
+
 | Pattern | Meaning |
 |---------|---------|
 | Price up + OBV up | Healthy uptrend, sustainable |
@@ -244,7 +271,7 @@ ATR = 14-period MA of TR
 
 ---
 
-## 5. Price Structure Indicators
+## Price Structure Indicators
 
 ### Fibonacci Retracement
 
@@ -274,30 +301,34 @@ ATR = 14-period MA of TR
 ### Support/Resistance
 
 **Pivot Points Calculation**:
-```
-P (Pivot) = (High + Low + Close) / 3
-R1 = 2P - Low     S1 = 2P - High
-R2 = P + (High - Low)    S2 = P - (High - Low)
-R3 = High + 2(P - Low)   S3 = Low - 2(High - P)
-```
-
+$$
+\begin{align}
+P &= \frac{High + Low + Close}{3} \\
+R_1 &= 2P - Low, \quad S_1 = 2P - High \\
+R_2 &= P + (High - Low), \quad S_2 = P - (High - Low) \\
+R_3 &= High + 2(P - Low), \quad S_3 = Low - 2(High - P)
+\end{align}
+$$
 **Swing High/Low Identification**:
+
 - Swing High: Highest point with 3-5 lower bars on each side
 - Swing Low: Lowest point with 3-5 higher bars on each side
 - Multiple tests without break = Strong level
 
 ---
 
-## 6. Derivatives Data Interpretation
+## Derivatives Data Interpretation
 
 ### Funding Rate
 
-| Pattern | Meaning | Implication |
-|---------|---------|-------------|
-| Consistently positive | More longs than shorts | Market bullish, but crowded long |
-| Consistently negative | More shorts than longs | Market bearish, but crowded short |
-| Extreme positive (> 0.1%) | Over-leveraged longs | High probability of long squeeze |
-| Extreme negative (< -0.1%) | Over-leveraged shorts | High probability of short squeeze |
+| Dimension           | Observation                      | Meaning                                       |
+| ------------------- | -------------------------------- | --------------------------------------------- |
+| Positive / Negative | funding > 0 / < 0                | Direction of payment between longs and shorts |
+| Absolute value      | High funding                     | Leveraged crowding + rising trading costs     |
+| Persistence         | Long-term positive / negative    | Structural bullish / bearish market           |
+| Relation to price   | funding ↑ + price ↑              | Healthy trend                                 |
+|                     | funding ↑ + price ↓              | Squeezing / forced positioning structure      |
+|                     | extreme funding + sideways price | Risk accumulation phase                       |
 
 ### Open Interest
 
@@ -316,3 +347,15 @@ R3 = High + 2(P - Low)   S3 = Low - 2(High - P)
 | Heavy short liquidations (side='buy') | Market squeezed shorts | Possible top forming |
 | Dense liquidations | Extreme move | Trend may reverse or accelerate |
 | Sparse liquidations | Normal volatility | Trend likely continues |
+
+### Judgement Based on Derivatives Data
+
+| Price    | OI (Open Interest) | Funding Rate                          | Liquidation Tendency                          | Interpretation & Action                               |
+| -------- | ------------------ | ------------------------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| Rising   | Rising             | Positive, moderately increasing       | Small short liquidations (scattered)          | Strong bullish trend, go long / hold longs            |
+| Rising   | Falling            | Positive, declining from high         | Dense short liquidations (short covering bid) | Short squeeze-driven rebound, reduce longs            |
+| Falling  | Rising             | Negative, steadily decreasing         | Small long liquidations (scattered)           | Strong bearish trend, short / hold shorts             |
+| Falling  | Falling            | Negative, rebounding from extreme low | Dense long liquidations (long capitulation)   | Late-stage long flush, take profit on shorts          |
+| Sideways | Flat or rising     | Extremely positive and not reverting  | Emerging long liquidation pressure            | Risk accumulation, reduce longs / consider short      |
+| Sideways | Flat or rising     | Extremely negative and not recovering | Emerging short liquidation pressure           | Risk accumulation, reduce shorts / consider long      |
+| Sideways | Sharp decline      | Returning toward neutral              | Dual liquidation already occurred             | Market reset, wait for OI recovery before positioning |

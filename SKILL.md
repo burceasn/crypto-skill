@@ -171,6 +171,7 @@ python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMI
 **Returns**: JSON array with `datetime`, `longShortPosRatio`
 
 **Interpretation**:
+
 - `> 1`: Top traders hold more long positions
 - `< 1`: Top traders hold more short positions
 - `= 1`: Equal long/short positions
@@ -272,14 +273,25 @@ python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [
 
 ## Supported Trading Pairs
 
+#### Cryptos
+
 | Code | Spot | Perpetual Contract |
 |------|------|-------------------|
 | BTC | BTC-USDT | BTC-USDT-SWAP |
 | ETH | ETH-USDT | ETH-USDT-SWAP |
 | BNB | BNB-USDT | BNB-USDT-SWAP |
-| ZEC | ZEC-USDT | ZEC-USDT-SWAP |
 | SOL | SOL-USDT | SOL-USDT-SWAP |
 | XAU | - | XAU-USDT-SWAP |
+
+#### RWA Assets
+
+RWA refers to on-chain real-world assets, which typically only have derivative trading pairs. When querying these assets, the  trading pair you should look up is in the format "ticker-USDT-swap". 
+
+| **Company** | **Stock Ticker** | **Trading Pair** |
+| ----------- | ---------------- | ---------------- |
+| Tesla       | TSLA             | TSLA-USDT-swap   |
+| SpaceX      | SPCX             | SPCX-USDT-swap   |
+| Micron      | MU               | MU-USDT-swap     |
 
 ---
 

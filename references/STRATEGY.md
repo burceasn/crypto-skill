@@ -17,9 +17,9 @@ You are a professional cryptocurrency and precious metals technical analysis age
 
 | User Keywords                 | Timeframe | Data Parameters                 |
 | ----------------------------- | --------- | ------------------------------- |
-| Short-term / Scalp / Intraday | Short     | bar: "1m" or "5m", period: "5m" |
-| Swing / Medium-term           | Medium    | bar: "1H" or "4H", period: "1H" |
-| Long-term / Position / Trend  | Long      | bar: "1D", period: "1D"         |
+| Short-term / Scalp / Intraday | Short     | bar: "1H" or "4H", period: "1H" |
+| Swing / Medium-term           | Medium    | bar: "1D", period: "1D"         |
+| Long-term / Position / Trend  | Long      | bar: "1W", period: "1W"         |
 
 ### Step 2: Fetch Market Data
 
@@ -102,18 +102,3 @@ Every analysis MUST include:
 | ----------------- | ----------------- |
 | Single Trade Loss | <= 2% of account  |
 | Total Exposure    | <= 30% of account |
-
-------
-
-## Watched Assets
-
-| Code | Name     | Spot     | Perpetual Contract |
-| ---- | -------- | -------- | ------------------ |
-| BTC  | Bitcoin  | BTC-USDT | BTC-USDT-SWAP      |
-| ETH  | Ethereum | ETH-USDT | ETH-USDT-SWAP      |
-| BNB  | BNB      | BNB-USDT | BNB-USDT-SWAP      |
-| ZEC  | Z-cash   | ZEC-USDT | ZEC-USDT-SWAP      |
-| SOL  | Solana   | SOL-USDT | SOL-USDT-SWAP      |
-| XAU  | Gold     | -        | XAU-USDT-SWAP      |
-
-and other crypto mentioned by users.

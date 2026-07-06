@@ -18,8 +18,8 @@ Commands:
     long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
         Get elite trader long/short account ratio
 
-    liquidation <inst_id> [--state STATE] [--limit LIMIT]
-        Get liquidation orders
+    liquidation <inst_id> [--state STATE]
+        Get liquidation price-bucket summary (grouped by price range, sorted by size)
 
     top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
         Get top 5% traders long/short position ratio
@@ -58,7 +58,7 @@ from crypto_data import (
     get_okx_funding_rate,
     get_okx_open_interest,
     get_long_short_ratio,
-    get_okx_liquidation,
+    get_okx_liquidation_summary,
     get_top_trader_long_short_position_ratio,
     get_option_open_interest_volume_ratio,
     get_fear_greed_index,
@@ -181,15 +181,13 @@ def cmd_long_short_ratio(args) -> None:
 
 
 def cmd_liquidation(args) -> None:
-    """Get liquidation orders."""
-    df = get_okx_liquidation(
+    """Get liquidation price-bucket summary."""
+    summary = get_okx_liquidation_summary(
         inst_id=args.inst_id,
         state=args.state,
-        limit=args.limit,
     )
-    if df is not None:
-        records = _clean_df_to_records(df)
-        output_json(records)
+    if summary is not None:
+        output_json(summary)
     else:
         output_error(f"Failed to fetch liquidation data for {args.inst_id}")
 
@@ -379,15 +377,12 @@ Examples:
     p_ls.set_defaults(func=cmd_long_short_ratio)
 
     # liquidation
-    p_liq = subparsers.add_parser("liquidation", help="Get liquidation orders")
+    p_liq = subparsers.add_parser("liquidation", help="Get liquidation price-bucket summary")
     p_liq.add_argument("inst_id", help="Perpetual contract, e.g., BTC-USDT-SWAP")
     p_liq.add_argument(
         "--state",
         default="filled",
-        help="Order state: filled, unfilled (default: filled)",
-    )
-    p_liq.add_argument(
-        "--limit", type=int, default=100, help="Number of data points (default: 100)"
+        help="Order state (default: filled)",
     )
     p_liq.set_defaults(func=cmd_liquidation)
 

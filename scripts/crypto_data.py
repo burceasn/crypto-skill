@@ -249,20 +249,36 @@ def get_long_short_ratio(
 
 
 def get_okx_liquidation(
-    inst_id: str, state: str = "filled", limit: int = 100
+    inst_id: str, state: str = "filled", limit: int = 100, bar: Optional[str] = None
 ) -> Optional[pd.DataFrame]:
-    """Get OKX perpetual contract liquidation order data."""
+    """Get OKX perpetual contract liquidation order data.
+
+    Args:
+        inst_id: Instrument ID (e.g., BTC-USDT-SWAP)
+        state: Order state - "filled" or "unfilled"
+        limit: Number of data points to return (for raw) or time buckets (for aggregated)
+        bar: Time aggregation period - "1H", "4H", "1D", "1W", or None for raw per-event data
+
+    Returns:
+        DataFrame with liquidation data, or None on failure.
+        Raw mode columns: [datetime, side, bkPx, sz]
+        Aggregated mode columns: [datetime, total_sz, sell_sz, buy_sz,
+                                  total_count, sell_count, buy_count]
+    """
     logger.info(
-        "Fetching OKX liquidation: inst_id=%s, state=%s, limit=%d",
-        inst_id, state, limit,
+        "Fetching OKX liquidation: inst_id=%s, state=%s, limit=%d, bar=%s",
+        inst_id, state, limit, bar,
     )
     if inst_id.endswith("-SWAP"):
         inst_family = inst_id[:-5]
     else:
         inst_family = inst_id
+
+    # When aggregating, fetch more raw data (max API limit=100 groups)
+    api_limit = 100 if bar else limit
     data_list = _okx_get(
         "https://www.okx.com/api/v5/public/liquidation-orders",
-        {"instType": "SWAP", "instFamily": inst_family, "state": state, "limit": limit},
+        {"instType": "SWAP", "instFamily": inst_family, "state": state, "limit": api_limit},
     )
     if not data_list:
         return None
@@ -283,9 +299,129 @@ def get_okx_liquidation(
     df["datetime"] = pd.to_datetime(pd.to_numeric(df["ts"]), unit="ms")
     df["bkPx"] = pd.to_numeric(df["bkPx"])
     df["sz"] = pd.to_numeric(df["sz"])
-    df = df[["datetime", "side", "bkPx", "sz"]]
-    df = df.sort_values("datetime", ascending=False).reset_index(drop=True)
-    return df
+
+    if bar is not None:
+        # ---- Aggregated mode ----
+        df = df.set_index("datetime")
+        # Separate buy and sell sizes
+        sell_mask = df["side"] == "sell"
+        buy_mask = df["side"] == "buy"
+
+        # Map bar to pandas frequency
+        freq = bar.upper().replace("H", "h")
+        agg = df.resample(freq).agg(
+            total_sz=("sz", "sum"),
+            total_count=("sz", "count"),
+        )
+        agg_sell = df[sell_mask].resample(freq).agg(
+            sell_sz=("sz", "sum"),
+            sell_count=("sz", "count"),
+        )
+        agg_buy = df[buy_mask].resample(freq).agg(
+            buy_sz=("sz", "sum"),
+            buy_count=("sz", "count"),
+        )
+        result = agg.join(agg_sell, how="left").join(agg_buy, how="left")
+        for col in ["sell_sz", "sell_count", "buy_sz", "buy_count"]:
+            result[col] = result[col].fillna(0)
+        result = result.sort_index(ascending=False).reset_index()
+        result = result.head(limit)
+        return result
+    else:
+        # ---- Raw per-event mode ----
+        df = df[["datetime", "side", "bkPx", "sz"]]
+        df = df.sort_values("datetime", ascending=False).reset_index(drop=True)
+        df = df.head(limit)
+        return df
+
+
+def get_okx_liquidation_summary(
+    inst_id: str, state: str = "filled", bucket_size: int = 500,
+) -> Optional[dict]:
+    """Get OKX liquidation data as a price-bucketed summary.
+
+    Fetches all available liquidation records from the API, groups them
+    by price bucket (rounded down to nearest bucket_size), and returns
+    a summary sorted by total liquidation size descending.
+
+    Args:
+        inst_id: Instrument ID (e.g., BTC-USDT-SWAP)
+        state: Order state - "filled" or "unfilled"
+        bucket_size: Price bucket interval in USD (default: 500)
+
+    Returns:
+        dict with keys: inst_id, state, start_time, end_time,
+                        total_records, bucket_size,
+                        price_buckets (list of {price, buy_sz, sell_sz, total_sz})
+        or None on failure.
+    """
+    logger.info(
+        "Fetching OKX liquidation summary: inst_id=%s, state=%s, bucket_size=%d",
+        inst_id, state, bucket_size,
+    )
+    if inst_id.endswith("-SWAP"):
+        inst_family = inst_id[:-5]
+    else:
+        inst_family = inst_id
+
+    data_list = _okx_get(
+        "https://www.okx.com/api/v5/public/liquidation-orders",
+        {"instType": "SWAP", "instFamily": inst_family, "state": state, "limit": 100},
+    )
+    if not data_list:
+        return None
+
+    all_details = []
+    for item in data_list:
+        for detail in item.get("details", []):
+            all_details.append({
+                "ts": detail["ts"],
+                "side": detail["side"],
+                "bkPx": detail["bkPx"],
+                "sz": detail["sz"],
+            })
+    if not all_details:
+        return None
+
+    df = pd.DataFrame(all_details)
+    df["datetime"] = pd.to_datetime(pd.to_numeric(df["ts"]), unit="ms")
+    df["bkPx"] = pd.to_numeric(df["bkPx"])
+    df["sz"] = pd.to_numeric(df["sz"])
+
+    # Compute time range
+    start_time = df["datetime"].min()
+    end_time = df["datetime"].max()
+
+    # Round price down to nearest bucket
+    df["price"] = (df["bkPx"] // bucket_size) * bucket_size
+
+    # Group by price bucket and side, sum sz
+    grouped = df.groupby(["price", "side"])["sz"].sum().reset_index()
+
+    # Pivot to get buy_sz and sell_sz columns
+    pivoted = grouped.pivot(
+        index="price", columns="side", values="sz"
+    ).fillna(0).reset_index()
+
+    for col in ["buy", "sell"]:
+        if col not in pivoted.columns:
+            pivoted[col] = 0.0
+
+    pivoted = pivoted.rename(columns={"buy": "buy_sz", "sell": "sell_sz"})
+    pivoted["total_sz"] = pivoted["buy_sz"] + pivoted["sell_sz"]
+    pivoted = pivoted.sort_values("total_sz", ascending=False)
+
+    buckets = pivoted.to_dict(orient="records")
+
+    return {
+        "inst_id": inst_id,
+        "state": state,
+        "start_time": start_time.isoformat(),
+        "end_time": end_time.isoformat(),
+        "total_records": len(df),
+        "bucket_size": bucket_size,
+        "price_buckets": buckets,
+    }
 
 
 def get_top_trader_long_short_position_ratio(

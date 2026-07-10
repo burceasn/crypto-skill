@@ -140,19 +140,28 @@ python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
 | `--period` | 1H | Granularity: 5m, 1H, 1D |
 | `--limit` | 100 | Data count (max 100) |
 
-### 5. liquidation - Liquidation Data
+### 5. liquidation - Liquidation Price-Bucket Summary
 
 ```bash
-python scripts/cli.py liquidation <inst_id> [--state STATE] [--limit LIMIT]
+python scripts/cli.py liquidation <inst_id> [--state STATE]
 ```
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `inst_id` | (required) | Perpetual contract, e.g., "BTC-USDT-SWAP" |
 | `--state` | filled | Order state: "filled" or "unfilled" |
-| `--limit` | 100 | Data count (max 100) |
 
-**Returns**: `datetime`, `side` (sell=long liquidated, buy=short liquidated), `bkPx`, `sz`
+**Returns**: JSON object with:
+- `inst_id` — Instrument ID
+- `state` — Order state queried
+- `start_time`, `end_time` — Time range of the data
+- `total_records` — Total raw liquidation records
+- `bucket_size` — Price bucket interval in USD (500)
+- `price_buckets` — Array of `{price, buy_sz, sell_sz, total_sz}`, sorted by total size descending
+
+**Interpretation**:
+- `side = sell` → Long position liquidated
+- `side = buy` → Short position liquidated
 
 ### 6. top-trader-ratio - Top Trader Position Ratio
 
@@ -304,8 +313,8 @@ python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 # Get ETH funding rate
 python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
 
-# Get BTC liquidation data
-python scripts/cli.py liquidation BTC-USDT-SWAP --state filled --limit 100
+# Get BTC liquidation price-bucket summary
+python scripts/cli.py liquidation BTC-USDT-SWAP
 
 # Get top trader position ratio
 python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24

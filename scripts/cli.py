@@ -230,7 +230,7 @@ def cmd_fear_greed(args) -> None:
         output_error("Failed to fetch Fear and Greed Index")
 
 
-def _load_ta(args) -> Optional[TechnicalAnalysis]:
+def _load_ta(args, factor: str = "default") -> Optional[TechnicalAnalysis]:
     """Fetch candles and return a TechnicalAnalysis instance, or None on failure."""
     df = get_okx_candles(
         inst_id=args.inst_id,
@@ -245,7 +245,17 @@ def _load_ta(args) -> Optional[TechnicalAnalysis]:
     for row in kline_data:
         row["datetime"] = str(row["datetime"])
 
-    ta = TechnicalAnalysis(kline_data=kline_data, inst_id=args.inst_id, bar=args.bar)
+    macd_fast, macd_slow, macd_signal = TechnicalAnalysis.MACD_PRESETS.get(
+        factor, TechnicalAnalysis.MACD_PRESETS["default"]
+    )
+    ta = TechnicalAnalysis(
+        kline_data=kline_data,
+        inst_id=args.inst_id,
+        bar=args.bar,
+        macd_fast=macd_fast,
+        macd_slow=macd_slow,
+        macd_signal=macd_signal,
+    )
     if ta.data.empty:
         output_error(f"K-line data for {args.inst_id} is empty")
         return None
@@ -254,7 +264,7 @@ def _load_ta(args) -> Optional[TechnicalAnalysis]:
 
 def cmd_indicators(args) -> None:
     """Get complete technical indicators."""
-    ta = _load_ta(args)
+    ta = _load_ta(args, factor=args.factor)
     if ta is None:
         return
 
@@ -268,7 +278,7 @@ def cmd_indicators(args) -> None:
 
 def cmd_summary(args) -> None:
     """Get technical analysis summary."""
-    ta = _load_ta(args)
+    ta = _load_ta(args, factor=args.factor)
     if ta is None:
         return
 
@@ -432,6 +442,12 @@ Examples:
         default=10,
         help="Return only latest N rows (default: 10, 0=all)",
     )
+    p_ind.add_argument(
+        "--factor",
+        default="default",
+        choices=["default", "fast"],
+        help="MACD parameter preset: default(12,26,9) or fast(5,13,8)",
+    )
     p_ind.set_defaults(func=cmd_indicators)
 
     # summary
@@ -440,6 +456,12 @@ Examples:
     p_sum.add_argument("--bar", default="1D", help="K-line period (default: 1D)")
     p_sum.add_argument(
         "--limit", type=int, default=100, help="Number of K-lines (default: 100)"
+    )
+    p_sum.add_argument(
+        "--factor",
+        default="default",
+        choices=["default", "fast"],
+        help="MACD parameter preset: default(12,26,9) or fast(5,13,8)",
     )
     p_sum.set_defaults(func=cmd_summary)
 

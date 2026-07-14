@@ -76,8 +76,11 @@ python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
 # Get funding rate
 python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 
-# Get technical indicators
+# Get technical indicators with fast MACD
 python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
+
+# Get technical indicators with custom MACD factor
+python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
 
 # Get Fear and Greed Index
 python scripts/cli.py fear-greed --days 30
@@ -226,7 +229,7 @@ python scripts/cli.py fear-greed [--days DAYS]
 Get all technical indicators for a trading pair.
 
 ```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
 ```
 
 | Parameter | Default | Description |
@@ -235,6 +238,7 @@ python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n
 | `--bar` | 1D | K-line period |
 | `--limit` | 100 | K-lines to fetch (max 100) |
 | `--last-n` | 10 | Return only latest N rows (0 = all) |
+| `--factor` | default | MACD preset: `default` (12,26,9) or `fast` (5,13,8) |
 
 **Returns**: JSON array with columns:
 - Price: `open`, `high`, `low`, `close`, `volume`
@@ -247,7 +251,7 @@ python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n
 Get a quick summary of current price and key indicators.
 
 ```bash
-python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT]
+python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
 ```
 
 | Parameter | Default | Description |
@@ -255,6 +259,7 @@ python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT]
 | `inst_id` | (required) | Trading pair |
 | `--bar` | 1D | K-line period |
 | `--limit` | 100 | K-lines for calculation |
+| `--factor` | default | MACD preset: `default` (12,26,9) or `fast` (5,13,8) |
 
 **Returns**: JSON object with `asset`, `indicators`, `data_summary`
 

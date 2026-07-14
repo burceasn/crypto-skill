@@ -16,23 +16,38 @@ logger = logging.getLogger(__name__)
 
 
 class TechnicalAnalysis:
+    # MACD preset parameter sets
+    MACD_PRESETS = {
+        "default": (12, 26, 9),
+        "fast": (5, 13, 8),
+    }
+
     def __init__(
         self,
         kline_data: List[Dict],
         inst_id: Optional[str] = None,
         bar: Optional[str] = None,
+        macd_fast: int = 12,
+        macd_slow: int = 26,
+        macd_signal: int = 9,
     ):
         """
         Initialize with pre-fetched kline data.
 
         Args:
-            kline_data: List of candle dicts, must contain keys:
-                        datetime, open, high, low, close, vol
-            inst_id:    Optional label for reference (no network use)
-            bar:        Optional label for reference (no network use)
+            kline_data:  List of candle dicts, must contain keys:
+                         datetime, open, high, low, close, vol
+            inst_id:     Optional label for reference (no network use)
+            bar:         Optional label for reference (no network use)
+            macd_fast:   MACD fast EMA period (default: 12)
+            macd_slow:   MACD slow EMA period (default: 26)
+            macd_signal: MACD signal EMA period (default: 9)
         """
         self.inst_id = inst_id
         self.bar = bar
+        self.macd_fast = macd_fast
+        self.macd_slow = macd_slow
+        self.macd_signal = macd_signal
         self.data = pd.DataFrame(kline_data)
         if not self.data.empty:
             self._process_dataframe()
@@ -73,10 +88,10 @@ class TechnicalAnalysis:
         avg_loss = loss.ewm(alpha=1 / 14, adjust=False).mean()
         rs = avg_gain / avg_loss
         indicators["rsi14"] = 100 - (100 / (1 + rs))
-        ema12 = close.ewm(span=12, adjust=False).mean()
-        ema26 = close.ewm(span=26, adjust=False).mean()
-        dif = ema12 - ema26
-        dea = dif.ewm(span=9, adjust=False).mean()
+        ema_fast = close.ewm(span=self.macd_fast, adjust=False).mean()
+        ema_slow = close.ewm(span=self.macd_slow, adjust=False).mean()
+        dif = ema_fast - ema_slow
+        dea = dif.ewm(span=self.macd_signal, adjust=False).mean()
         indicators["macd_dif"] = dif
         indicators["macd_dea"] = dea
         indicators["macd_hist"] = (dif - dea) * 2

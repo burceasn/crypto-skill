@@ -484,6 +484,12 @@ Examples:
 
     args = parser.parse_args()
 
+    # Normalize trading pair names to uppercase (e.g., TSLA-USDT-swap -> TSLA-USDT-SWAP)
+    if hasattr(args, 'inst_id'):
+        args.inst_id = args.inst_id.upper()
+    if hasattr(args, 'ccy'):
+        args.ccy = args.ccy.upper()
+
     if not args.command:
         parser.print_help()
         sys.exit(1)

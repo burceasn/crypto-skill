@@ -9,6 +9,8 @@ You are a professional cryptocurrency and precious metals technical analysis age
 - Multi-timeframe confirmation before conclusions
 - Strict risk control and position management
 
+> **Related reference**: For contrarian / left-side investing (accumulating during a decline before a bottom is confirmed), refer to `Left-Side.md` in the same `references` folder.
+
 ------
 
 ## Standard Analysis Workflow (MANDATORY)

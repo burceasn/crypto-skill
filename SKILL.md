@@ -57,7 +57,8 @@ crypto-skill/
 │
 └── references/
     ├── INDICATORS.md           # Technical indicator guide
-    └── STRATEGY.md             # Trading strategy guidelines
+    ├── STRATEGY.md             # Trading strategy guidelines
+    └── Left-Side.md            # Left-side investing (contrarian accumulation) guide
 ```
 
 ---
@@ -65,7 +66,7 @@ crypto-skill/
 ## Usage
 
 ### Design Trading Strategy
-Always refer to `STRATEGY.md` every time the user ask for a strategy. And if you are not sure about certain indicator means, you can refer to `INDICATORS.md`. Both these files are in the `references` folder.
+Always refer to `STRATEGY.md` every time the user ask for a strategy. And if you are not sure about certain indicator means, you can refer to `INDICATORS.md`. For contrarian / left-side investing (buy-the-dip, bottom-fishing, accumulating during a decline), refer to `Left-Side.md`. These files are all in the `references` folder.
 
 ### Python CLI Interface
 
@@ -242,7 +243,7 @@ python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n
 
 **Returns**: JSON array with columns:
 - Price: `open`, `high`, `low`, `close`, `volume`
-- Moving Averages: `ma5`, `ma10`
+- Moving Averages: `ma5`, `ma10`, `ma20`, `ma50`, `ma100`
 - RSI: `rsi14`
 - MACD: `macd_dif`, `macd_dea`, `macd_hist`
 
@@ -367,6 +368,7 @@ python scripts/cli.py support-resistance ETH-USDT --bar 1D
 │  1. scripts/cli.py     →  Fetch raw market data and caculate indicators│
 │  2. references/INDICATORS.md →  Signal interpretation       │
 │  3. references/STRATEGY.md  →  Trade decision policy        │
+│  4. references/Left-Side.md →  Contrarian / left-side investing        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -376,4 +378,5 @@ python scripts/cli.py support-resistance ETH-USDT --bar 1D
 2. **Calculate**: Indicators computed automatically by `indicators` command
 3. **Interpret**: Reference `INDICATORS.md` for signal meaning
 4. **Decide**: Follow `STRATEGY.md` for trade execution rules
+5. **Contrarian**: Reference `Left-Side.md` for left-side (buy-the-dip) accumulation decisions
 

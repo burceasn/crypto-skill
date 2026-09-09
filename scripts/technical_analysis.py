@@ -81,6 +81,9 @@ class TechnicalAnalysis:
         # Simple indicators
         indicators["ma5"] = close.rolling(window=5).mean()
         indicators["ma10"] = close.rolling(window=10).mean()
+        indicators["ma20"] = close.rolling(window=20).mean()
+        indicators["ma50"] = close.rolling(window=50).mean()
+        indicators["ma100"] = close.rolling(window=100).mean()
         delta = close.diff()
         gain = delta.where(delta > 0, 0)
         loss = -delta.where(delta < 0, 0)
@@ -207,6 +210,44 @@ def _analyze_single_asset(ta: TechnicalAnalysis, asset: str) -> Optional[Dict]:
     """Analyze a single asset and return summary (indicators + metadata)."""
     if ta.data is None or ta.data.empty:
         return None
-    indicators = ta.get_all_indicators().iloc[-1].to_dict()
+
+    all_indicators = ta.get_all_indicators().iloc[-1].to_dict()
+
+    # Categorize indicators for structured output
+    price_keys = {"datetime", "open", "high", "low", "close", "volume"}
+    trend_keys = {
+        "ma5", "ma10", "ma20", "ma50", "ma100",
+        "adx", "plus_di", "minus_di",
+    }
+    momentum_keys = {
+        "rsi14", "macd_dif", "macd_dea", "macd_hist",
+        "kdj_k", "kdj_d", "kdj_j",
+    }
+    volatility_keys = {
+        "atr14", "atr14_pct",
+        "bb_upper", "bb_mid", "bb_lower", "bb_pctb", "bb_bandwidth",
+    }
+
+    indicators = {}
+    trend = {}
+    momentum = {}
+    volatility = {}
+
+    for key, value in all_indicators.items():
+        if key in price_keys:
+            indicators[key] = value
+        elif key in trend_keys:
+            trend[key] = value
+        elif key in momentum_keys:
+            momentum[key] = value
+        elif key in volatility_keys:
+            volatility[key] = value
+        else:
+            indicators[key] = value  # obv and others at top level
+
+    indicators["trend"] = trend
+    indicators["momentum"] = momentum
+    indicators["volatility"] = volatility
+
     data_summary = {"total_candles": len(ta.data)}
     return {"asset": asset, "indicators": indicators, "data_summary": data_summary}

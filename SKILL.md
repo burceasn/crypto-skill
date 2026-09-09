@@ -58,7 +58,7 @@ crypto-skill/
 └── references/
     ├── INDICATORS.md           # Technical indicator guide
     ├── STRATEGY.md             # Trading strategy guidelines
-    └── Left-Side.md            # Left-side investing (contrarian accumulation) guide
+    └── Left-Side.md            # Left-side investing guide — MUST READ on every use
 ```
 
 ---
@@ -66,7 +66,14 @@ crypto-skill/
 ## Usage
 
 ### Design Trading Strategy
-Always refer to `STRATEGY.md` every time the user ask for a strategy. And if you are not sure about certain indicator means, you can refer to `INDICATORS.md`. For contrarian / left-side investing (buy-the-dip, bottom-fishing, accumulating during a decline), refer to `Left-Side.md`. These files are all in the `references` folder.
+
+**MUST read `Left-Side.md` on EVERY use of this skill, before producing any strategy, opinion, or analysis.** It carries the same authority as `STRATEGY.md` — and for any buy-the-dip / bottom-fishing / accumulation-during-decline scenario, its rules take precedence.
+
+- `Left-Side.md` → **MANDATORY on every use**. Governs dip-vs-death judgment (is the decline buyable?), capitulation confirmation, staged accumulation, and invalidation discipline. Apply it even when the user does not explicitly ask for contrarian analysis.
+- `STRATEGY.md` → Overall analysis workflow, multi-timeframe verification, and trade execution rules. Always refer to it every time the user asks for a strategy.
+- `INDICATORS.md` → Refer when unsure about what a certain indicator means.
+
+These files are all in the `references` folder.
 
 ### Python CLI Interface
 
@@ -367,8 +374,8 @@ python scripts/cli.py support-resistance ETH-USDT --bar 1D
 ├─────────────────────────────────────────────────────────────┤
 │  1. scripts/cli.py     →  Fetch raw market data and caculate indicators│
 │  2. references/INDICATORS.md →  Signal interpretation       │
-│  3. references/STRATEGY.md  →  Trade decision policy        │
-│  4. references/Left-Side.md →  Contrarian / left-side investing        │
+│  3. references/Left-Side.md →  Dip evaluation & accumulation policy (MUST READ every use)│
+│  4. references/STRATEGY.md  →  Trade decision policy        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -377,6 +384,6 @@ python scripts/cli.py support-resistance ETH-USDT --bar 1D
 1. **Fetch Data**: Use `python scripts/cli.py <command>`
 2. **Calculate**: Indicators computed automatically by `indicators` command
 3. **Interpret**: Reference `INDICATORS.md` for signal meaning
-4. **Decide**: Follow `STRATEGY.md` for trade execution rules
-5. **Contrarian**: Reference `Left-Side.md` for left-side (buy-the-dip) accumulation decisions
+4. **Evaluate**: Read `Left-Side.md` (MANDATORY on every use) — judge whether any decline is a buyable dip or a death spiral, and how any accumulation must be staged
+5. **Decide**: Follow `STRATEGY.md` for trade execution rules
 

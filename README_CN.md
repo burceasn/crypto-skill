@@ -15,25 +15,25 @@
 | `candles` | K线/OHLCV 数据（1分钟到1周时间周期） |
 | `funding-rate` | 永续合约资金费率 |
 | `open-interest` | 持仓量（含美元估值） |
-| `long-short-ratio` | 精英交易员持仓人数比 |
+| `long-short-ratio` | 账户多空比 |
 | `top-trader-ratio` | 前5%交易员多空仓位比 |
 | `option-ratio` | 期权看涨/看跌持仓量和交易量比 |
 | `fear-greed` | 恐惧贪婪指数（alternative.me） |
-| `liquidation` | 历史爆仓记录 |
+| `liquidation` | 价格区间爆仓汇总（按$500区间聚合） |
 
 ### 技术分析命令
 
 | 命令 | 描述 |
 |---------|-------------|
-| `indicators` | 完整技术指标（MA, RSI, MACD 等） |
-| `summary` | 快速技术分析摘要 |
+| `indicators` | 完整技术指标（MA, RSI, MACD, KDJ 等），支持MACD预设参数 |
+| `summary` | 结构化摘要：价格 + 趋势/动量/波动率分类 |
 | `support-resistance` | 支撑/阻力位和斐波那契回撤 |
 
 ### 技术指标
 
 | 类别 | 指标 |
 |----------|------------|
-| **趋势** | MA (5/10/20/50), EMA (12/26), DMI/ADX |
+| **趋势** | MA (5/10/20/50/100), EMA (12/26), DMI/ADX |
 | **动量** | RSI (6/14), MACD (DIF/DEA/柱状图), KDJ |
 | **波动率** | 布林带, ATR |
 | **成交量** | OBV (能量潮指标) |
@@ -49,6 +49,16 @@
 | SOL | Solana | SOL-USDT | SOL-USDT-SWAP |
 | ZEC | 大零币 | ZEC-USDT | ZEC-USDT-SWAP |
 | XAU | 黄金 | - | XAU-USDT-SWAP |
+
+### 支持的 RWA 资产
+
+RWA 指链上真实世界资产，通常只有衍生品交易对。查询时请使用 "ticker-USDT-swap" 格式。
+
+| 公司 | 股票代码 | 交易对 |
+|------|----------|--------|
+| Tesla（特斯拉） | TSLA | TSLA-USDT-swap |
+| SpaceX | SPCX | SPCX-USDT-swap |
+| Micron（美光） | MU | MU-USDT-swap |
 
 ## 安装
 
@@ -82,6 +92,12 @@ python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 # 获取技术指标
 python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
 
+# 使用快速MACD预设参数(5, 13, 8)获取技术指标
+python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
+
+# 获取价格区间爆仓汇总
+python scripts/cli.py liquidation BTC-USDT-SWAP
+
 # 获取恐惧贪婪指数
 python scripts/cli.py fear-greed --days 30
 
@@ -103,10 +119,17 @@ python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
 # 示例: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 ```
 
+#### open-interest - 持仓量
+```bash
+python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
+# 示例: python scripts/cli.py open-interest BTC-USDT-SWAP --period 1H --limit 50
+```
+
 #### indicators - 技术指标
 ```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
 # 示例: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
+# MACD预设参数通过 --factor 指定: default (12,26,9) 或 fast (5,13,8)
 ```
 
 #### fear-greed - 恐惧贪婪指数
@@ -127,6 +150,32 @@ python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
 # 示例: python scripts/cli.py option-ratio BTC --period 8H --limit 20
 ```
 
+#### top-trader-ratio - 顶级交易员仓位比
+```bash
+python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
+# 示例: python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
+```
+
+#### liquidation - 价格区间爆仓汇总
+```bash
+python scripts/cli.py liquidation <inst_id> [--state STATE]
+# 示例: python scripts/cli.py liquidation BTC-USDT-SWAP
+```
+
+返回按 $500 价格区间聚合的爆仓记录，按总量降序排列。`side = sell` 表示多头爆仓；`side = buy` 表示空头爆仓。
+
+#### summary - 技术分析摘要
+```bash
+python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
+# 示例: python scripts/cli.py summary BTC-USDT --bar 1D
+```
+
+#### support-resistance - 支撑阻力位
+```bash
+python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
+# 示例: python scripts/cli.py support-resistance ETH-USDT --bar 1D
+```
+
 ## 项目结构
 
 ```
@@ -143,7 +192,8 @@ crypto-skill/
 │
 └── references/
     ├── INDICATORS.md           # 技术指标指南
-    └── STRATEGY.md             # 交易策略指南
+    ├── STRATEGY.md             # 交易策略指南
+    └── Left-Side.md            # 左侧投资（反向建仓）指南
 ```
 
 ## Python API（高级用法）
@@ -179,6 +229,7 @@ pandas>=2.0.0
 numpy>=1.24.0
 requests>=2.31.0
 urllib3>=2.0.0
+toon-format==0.9.0b1
 ```
 
 ## 免责声明

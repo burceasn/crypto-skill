@@ -15,25 +15,25 @@ An AI-ready skill that provides real-time crypto market data from OKX exchange a
 | `candles` | K-line/OHLCV data (1m to 1W timeframes) |
 | `funding-rate` | Perpetual contract funding rates |
 | `open-interest` | Open interest with USD valuation |
-| `long-short-ratio` | Elite trader positioning data |
+| `long-short-ratio` | Account long/short ratio |
 | `top-trader-ratio` | Top 5% traders' long/short position ratio |
 | `option-ratio` | Option call/put OI and volume ratio |
 | `fear-greed` | Fear and Greed Index from alternative.me |
-| `liquidation` | Historical liquidation records |
+| `liquidation` | Price-bucket liquidation summary (aggregated by $500 price intervals) |
 
 ### Technical Analysis Commands
 
 | Command | Description |
 |---------|-------------|
-| `indicators` | Complete technical indicators (MA, RSI, MACD, etc.) |
-| `summary` | Quick technical analysis summary |
+| `indicators` | Complete technical indicators (MA, RSI, MACD, KDJ, etc.) with MACD presets |
+| `summary` | Structured summary: price plus trend/momentum/volatility categories |
 | `support-resistance` | Support/resistance levels and Fibonacci retracement |
 
 ### Technical Indicators
 
 | Category | Indicators |
 |----------|------------|
-| **Trend** | MA (5/10/20/50), EMA (12/26), DMI/ADX |
+| **Trend** | MA (5/10/20/50/100), EMA (12/26), DMI/ADX |
 | **Momentum** | RSI (6/14), MACD (DIF/DEA/Histogram), KDJ |
 | **Volatility** | Bollinger Bands, ATR |
 | **Volume** | OBV (On-Balance Volume) |
@@ -49,6 +49,16 @@ An AI-ready skill that provides real-time crypto market data from OKX exchange a
 | SOL | Solana | SOL-USDT | SOL-USDT-SWAP |
 | ZEC | Zcash | ZEC-USDT | ZEC-USDT-SWAP |
 | XAU | Gold | - | XAU-USDT-SWAP |
+
+### Supported RWA Assets
+
+RWA refers to on-chain real-world assets, which typically only have derivative trading pairs. When querying these assets, use the format "ticker-USDT-swap".
+
+| Company | Stock Ticker | Trading Pair |
+|---------|--------------|--------------|
+| Tesla | TSLA | TSLA-USDT-swap |
+| SpaceX | SPCX | SPCX-USDT-swap |
+| Micron | MU | MU-USDT-swap |
 
 ## Installation
 
@@ -82,6 +92,12 @@ python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 # Get technical indicators
 python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
 
+# Get technical indicators with fast MACD preset (5, 13, 8)
+python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
+
+# Get liquidation price-bucket summary
+python scripts/cli.py liquidation BTC-USDT-SWAP
+
 # Get Fear and Greed Index
 python scripts/cli.py fear-greed --days 30
 
@@ -103,10 +119,17 @@ python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
 # Example: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
 ```
 
+#### open-interest - Open Interest
+```bash
+python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
+# Example: python scripts/cli.py open-interest BTC-USDT-SWAP --period 1H --limit 50
+```
+
 #### indicators - Technical Indicators
 ```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N]
+python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
 # Example: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
+# MACD presets via --factor: default (12,26,9) or fast (5,13,8)
 ```
 
 #### fear-greed - Fear and Greed Index
@@ -127,6 +150,32 @@ python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
 # Example: python scripts/cli.py option-ratio BTC --period 8H --limit 20
 ```
 
+#### top-trader-ratio - Top Trader Position Ratio
+```bash
+python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
+# Example: python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
+```
+
+#### liquidation - Price-Bucket Liquidation Summary
+```bash
+python scripts/cli.py liquidation <inst_id> [--state STATE]
+# Example: python scripts/cli.py liquidation BTC-USDT-SWAP
+```
+
+Returns liquidation records aggregated into $500 price buckets, sorted by total size descending. `side = sell` means a long position was liquidated; `side = buy` means a short position was liquidated.
+
+#### summary - Technical Analysis Summary
+```bash
+python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
+# Example: python scripts/cli.py summary BTC-USDT --bar 1D
+```
+
+#### support-resistance - Support and Resistance Levels
+```bash
+python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
+# Example: python scripts/cli.py support-resistance ETH-USDT --bar 1D
+```
+
 ## Project Structure
 
 ```
@@ -143,7 +192,8 @@ crypto-skill/
 │
 └── references/
     ├── INDICATORS.md           # Technical indicator guide
-    └── STRATEGY.md             # Trading strategy guidelines
+    ├── STRATEGY.md             # Trading strategy guidelines
+    └── Left-Side.md            # Left-side investing (contrarian accumulation) guide
 ```
 
 ## Python API (Advanced)
@@ -179,6 +229,7 @@ pandas>=2.0.0
 numpy>=1.24.0
 requests>=2.31.0
 urllib3>=2.0.0
+toon-format==0.9.0b1
 ```
 
 ## Disclaimer

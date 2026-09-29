@@ -1,241 +1,60 @@
-# Crypto Technical Analysis Skill
+# trade-skill
 
-[![English](https://img.shields.io/badge/lang-English-blue.svg)](README.md) [![中文](https://img.shields.io/badge/lang-中文-red.svg)](README_CN.md)
+[中文](README_CN.md) · [Agent instructions](SKILL.md) · [CLI reference](references/CLI.md)
 
-> Python-based cryptocurrency market data and technical analysis toolkit
+A Python CLI and agent skill for market data and left-side accumulation analysis. It queries OKX market and derivatives data, calculates technical indicators, and retrieves crypto sentiment from alternative.me. Crypto, precious-metal and company-linked instrument candidates are supported through the same interface; actual availability depends on the upstream service.
 
-An AI-ready skill that provides real-time crypto market data from OKX exchange and comprehensive technical indicator calculations. Designed for seamless command-line usage.
+## Trading approach
 
-## Features
+The default is staged accumulation during declines, before a bottom is confirmed. Trend direction and entry suitability are separate decisions: a strong rally alone is not a reason to buy, and a downtrend alone does not veto an entry.
 
-### Market Data Commands
+Evaluate price anchors, the holding thesis, available budget, existing exposure and invalidation conditions. Ordinary pullbacks can qualify without extreme fear, capitulation or a confirmed reversal. Left-side trading does not mean unlimited averaging down. Explicit user strategy choices take precedence. This toolkit does not place orders.
 
-| Command | Description |
-|---------|-------------|
-| `candles` | K-line/OHLCV data (1m to 1W timeframes) |
-| `funding-rate` | Perpetual contract funding rates |
-| `open-interest` | Open interest with USD valuation |
-| `long-short-ratio` | Account long/short ratio |
-| `top-trader-ratio` | Top 5% traders' long/short position ratio |
-| `option-ratio` | Option call/put OI and volume ratio |
-| `fear-greed` | Fear and Greed Index from alternative.me |
-| `liquidation` | Price-bucket liquidation summary (aggregated by $500 price intervals) |
+## Setup
 
-### Technical Analysis Commands
-
-| Command | Description |
-|---------|-------------|
-| `indicators` | Complete technical indicators (MA, RSI, MACD, KDJ, etc.) with MACD presets |
-| `summary` | Structured summary: price plus trend/momentum/volatility categories |
-| `support-resistance` | Support/resistance levels and Fibonacci retracement |
-
-### Technical Indicators
-
-| Category | Indicators |
-|----------|------------|
-| **Trend** | MA (5/10/20/50/100), EMA (12/26), DMI/ADX |
-| **Momentum** | RSI (6/14), MACD (DIF/DEA/Histogram), KDJ |
-| **Volatility** | Bollinger Bands, ATR |
-| **Volume** | OBV (On-Balance Volume) |
-| **Structure** | Fibonacci Retracement, Support/Resistance |
-
-### Supported Assets
-
-| Code | Name | Spot | Perpetual |
-|------|------|------|-----------|
-| BTC | Bitcoin | BTC-USDT | BTC-USDT-SWAP |
-| ETH | Ethereum | ETH-USDT | ETH-USDT-SWAP |
-| BNB | BNB | BNB-USDT | BNB-USDT-SWAP |
-| SOL | Solana | SOL-USDT | SOL-USDT-SWAP |
-| ZEC | Zcash | ZEC-USDT | ZEC-USDT-SWAP |
-| XAU | Gold | - | XAU-USDT-SWAP |
-
-### Supported RWA Assets
-
-RWA refers to on-chain real-world assets, which typically only have derivative trading pairs. When querying these assets, use the format "ticker-USDT-swap".
-
-| Company | Stock Ticker | Trading Pair |
-|---------|--------------|--------------|
-| Tesla | TSLA | TSLA-USDT-swap |
-| SpaceX | SPCX | SPCX-USDT-swap |
-| Micron | MU | MU-USDT-swap |
-
-## Installation
-
-### Prerequisites
-
-- Python 3.11+
-- Network access to OKX API
-
-### Setup
+Use Python 3.11+ and run from the project directory:
 
 ```bash
-# Clone the repository
-git clone https://github.com/burceasn/crypto-skill.git
-cd crypto-skill
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Python CLI
-
-```bash
-# Get K-line data
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-
-# Get funding rate
-python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
-
-# Get technical indicators
-python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
-
-# Get technical indicators with fast MACD preset (5, 13, 8)
-python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
-
-# Get liquidation price-bucket summary
-python scripts/cli.py liquidation BTC-USDT-SWAP
-
-# Get Fear and Greed Index
-python scripts/cli.py fear-greed --days 30
-
-# Get support and resistance levels
+python -m pip install -r requirements.txt
+python scripts/cli.py --help
+python scripts/cli.py indicators BTC-USDT --bar 1D --limit 100 --last-n 20
 python scripts/cli.py support-resistance BTC-USDT --bar 1D
 ```
 
-### Command Reference
+The skill name is trade-skill. When installing it, name the containing skill directory trade-skill and include SKILL.md, scripts, references and requirements.txt. The source checkout may retain its existing directory name. Updating the repository does not automatically update an installed copy.
 
-#### candles - K-Line Data
+## Company instruments
+
+Resolve the company name to its trading symbol, then query **symbol-USDT-SWAP** directly. For Tesla, resolve to TSLA:
+
 ```bash
-python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
-# Example: python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles "TSLA-USDT-SWAP" --bar 1D --limit 100
 ```
 
-#### funding-rate - Funding Rate
-```bash
-python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
-# Example: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
-```
+Do not construct instrument identifiers from literal company names. Verify ambiguous symbol mappings before querying and disclose the actual identifier. Examples do not assert a listing. A failed request is not bearish evidence, and a company-linked perpetual is not the company's stock.
 
-#### open-interest - Open Interest
-```bash
-python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
-# Example: python scripts/cli.py open-interest BTC-USDT-SWAP --period 1H --limit 50
-```
+## Commands and documentation
 
-#### indicators - Technical Indicators
-```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
-# Example: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
-# MACD presets via --factor: default (12,26,9) or fast (5,13,8)
-```
+[CLI.md](references/CLI.md) is the single reference for all 11 commands, their options, fields, examples and implementation limits.
 
-#### fear-greed - Fear and Greed Index
-```bash
-python scripts/cli.py fear-greed [--days DAYS]
-# Example: python scripts/cli.py fear-greed --days 30
-```
+| Command | Purpose |
+| --- | --- |
+| candles | OHLCV data |
+| indicators | Indicator history |
+| summary | Latest categorized indicator snapshot |
+| support-resistance | Local extrema and range ratios |
+| funding-rate | Historical and current/predicted funding |
+| open-interest | Historical and current open interest |
+| long-short-ratio | Account ratio |
+| top-trader-ratio | Top-trader position ratio |
+| option-ratio | Raw option ratio fields |
+| liquidation | Fixed price-bucket liquidation summary |
+| fear-greed | Crypto sentiment history |
 
-#### long-short-ratio - Long/Short Ratio
-```bash
-python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-# Example: python scripts/cli.py long-short-ratio BTC --period 1H --limit 50
-```
+- [SKILL.md](SKILL.md): discovery, instrument resolution, routing and policy precedence.
+- [Left-Side.md](references/Left-Side.md): entry eligibility, staging, budgets and invalidation.
+- [STRATEGY.md](references/STRATEGY.md): data workflow, reporting and behavioral review cases.
+- [indicators.md](references/indicators.md): evidence interpretation and limitations.
+- scripts/cli.py: command entrypoint; crypto_data.py: data access; technical_analysis.py: calculations.
 
-#### option-ratio - Option Call/Put Ratio
-```bash
-python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-# Example: python scripts/cli.py option-ratio BTC --period 8H --limit 20
-```
-
-#### top-trader-ratio - Top Trader Position Ratio
-```bash
-python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
-# Example: python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
-```
-
-#### liquidation - Price-Bucket Liquidation Summary
-```bash
-python scripts/cli.py liquidation <inst_id> [--state STATE]
-# Example: python scripts/cli.py liquidation BTC-USDT-SWAP
-```
-
-Returns liquidation records aggregated into $500 price buckets, sorted by total size descending. `side = sell` means a long position was liquidated; `side = buy` means a short position was liquidated.
-
-#### summary - Technical Analysis Summary
-```bash
-python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
-# Example: python scripts/cli.py summary BTC-USDT --bar 1D
-```
-
-#### support-resistance - Support and Resistance Levels
-```bash
-python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
-# Example: python scripts/cli.py support-resistance ETH-USDT --bar 1D
-```
-
-## Project Structure
-
-```
-crypto-skill/
-├── README.md                   # This file (English)
-├── README_CN.md                # Chinese documentation
-├── SKILL.md                    # Skill documentation
-├── requirements.txt            # Python dependencies
-│
-├── scripts/
-│   ├── cli.py                  # CLI implementation
-│   ├── crypto_data.py          # OKX API wrapper
-│   └── technical_analysis.py   # TA indicator engine
-│
-└── references/
-    ├── INDICATORS.md           # Technical indicator guide
-    ├── STRATEGY.md             # Trading strategy guidelines
-    └── Left-Side.md            # Left-side investing (contrarian accumulation) guide
-```
-
-## Python API (Advanced)
-
-For programmatic access, you can import the modules directly:
-
-```python
-from scripts.crypto_data import get_okx_candles, get_fear_greed_index
-from scripts.technical_analysis import TechnicalAnalysis
-
-# Fetch K-line data
-df = get_okx_candles("BTC-USDT", bar="1H", limit=100)
-
-# Calculate indicators
-kline_data = df.to_dict(orient="records")
-ta = TechnicalAnalysis(kline_data=kline_data, inst_id="BTC-USDT", bar="1H")
-indicators = ta.get_all_indicators()
-print(indicators.tail(5))
-```
-
-## Output Format
-
-All commands output JSON to stdout, making it easy to:
-
-- Pipe to other tools: `python scripts/cli.py candles BTC-USDT | jq '.[0]'`
-- Save to files: `python scripts/cli.py indicators BTC-USDT > analysis.json`
-- Process in scripts: `result=$(python scripts/cli.py fear-greed --days 7)`
-
-## Requirements
-
-```
-pandas>=2.0.0
-numpy>=1.24.0
-requests>=2.31.0
-urllib3>=2.0.0
-toon-format==0.9.0b1
-```
-
-## Disclaimer
-
-**⚠️ Important Notice:** This skill only provides technical analysis and position recommendations, and does **not** support direct trading. For the sake of ==cybersecurity== and ==being responsible for your own funds==, it is **strongly discouraged** to entrust your cryptocurrency to an AI agent entirely, no matter how powerful the agent is.
-
-## License
-
-MIT License - Use it, fork it, learn from it.
+Successful output is **TOON, not JSON**. Explicit errors may be JSON; empty results and exceptions also require inspection. Check timestamps, missing values and potentially unfinished candles. The CLI does not provide MA200, company fundamentals, account balances or order execution. Review the documented support/resistance and Fibonacci implementation before using their results.

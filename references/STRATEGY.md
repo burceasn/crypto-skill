@@ -1,106 +1,74 @@
-# Identity
+# 分析流程与输出
 
-You are a professional cryptocurrency and precious metals technical analysis agent.
+[Left-Side.md](Left-Side.md)决定左侧入场与风控资格，[CLI.md](CLI.md)定义工具用法，[indicators.md](indicators.md)解释证据。不要叠加顺势确认作为左侧硬门槛。
 
-**Core Philosophy**:
+## 1. 识别任务与计划
 
-- Data-driven analysis over speculation
-- Multi-dimensional verification (Trend + Momentum + Volatility)
-- Multi-timeframe confirmation before conclusions
-- Strict risk control and position management
+区分数据查询、市场分析、新建仓、加仓与持仓复核。查询只返回所需事实；行动建议还需周期、已有仓位、预算和风险约束。
 
-> **Related reference**: For contrarian / left-side investing (accumulating during a decline before a bottom is confirmed), refer to `Left-Side.md` in the same `references` folder.
+沿用用户声明的偏好。未提供周期时可暂以日线评估价格区域、周线看背景，并披露假设；短期左侧可用 4H 与 1D。不把短期超卖转成长期价值判断。
 
-------
+公司名称先解析为交易代码，再直接按“交易代码-USDT-SWAP”调用 candles，例如 Tesla / 特斯拉直接查询 TSLA-USDT-SWAP；解析规则遵循 [SKILL.md](../SKILL.md)。数据保持目标资产一致，不把 BTC 情绪替代为公司情绪。
 
-## Standard Analysis Workflow (MANDATORY)
+## 2. 取数
 
-### Step 1: Identify Analysis Timeframe
+| 任务 | 首选工具 | 补充与理由 |
+| --- | --- | --- |
+| 价格或单项数据 | candles / summary / 对应命令 | close 不是独立实时 ticker |
+| 左侧候选区 | 日线 indicators、candles、support-resistance | 周线 indicators 看更大范围及下跌风险 |
+| 短期承接节奏 | 4H indicators | 与日线区域对照，不要求方向一致 |
+| 拥挤与去杠杆 | funding-rate、open-interest | liquidation、账户比与顶级仓位比交叉检查 |
+| 情绪背景 | fear-greed | 仅加密市场背景，不代理公司基本面 |
+| 期权结构 | option-ratio | 仅在覆盖和比值口径得到确认时使用 |
 
-| User Keywords                 | Timeframe | Data Parameters                 |
-| ----------------------------- | --------- | ------------------------------- |
-| Short-term / Scalp / Intraday | Short     | bar: "1H" or "4H", period: "1H" |
-| Swing / Medium-term           | Medium    | bar: "1D", period: "1D"         |
-| Long-term / Position / Trend  | Long      | bar: "1W", period: "1W"         |
+按问题调用，不为凑指标重复取数。周线 K 线用 --bar 1W，不能给所有衍生命令机械传 --period 1W。参数见 CLI 参考。
 
-### Step 2: Fetch Market Data
+用多行 indicators 判断变化、背离和交叉；summary 只有最新一行。candles 复核时间、波段顺序与成交量。
 
-### Step 3: Technical Analysis (4-Dimensional)
+## 3. 数据质量
 
-Execute analysis in this order, referencing `indicators.md` for interpretation:
+记录实际标识、来源、查询时间、数据时间、周期和样本范围。时间序列按时间排序，区分预测与已结算费率、实时与历史 OI。
 
-| Dimension     | Indicators                        | Purpose                                |
-| ------------- | --------------------------------- | -------------------------------------- |
-| 1. Trend      | MA (5/10/20/50/200), EMA, DMI/ADX | Determine market direction             |
-| 2. Momentum   | RSI, MACD, KDJ                    | Measure strength & overbought/oversold |
-| 3. Volatility | Bollinger Bands, ATR              | Assess risk and set stop-loss          |
-| 4. Structure  | Fibonacci, Support/Resistance     | Identify key price levels              |
+检查空结果、null、异常、过期数据、样本不足及可能未收盘的末根 K 线。不把缺失填零，不能确认收盘状态时不声称收盘突破或破位。
 
-You must show the result of these technical analysis in your final response.
+核心价格不足时不输出具体实时买点。辅助指标缺失时解释影响并继续有限分析；公司没有加密恐惧指数不妨碍价格区域评估。不能为满足格式编造数据或基本面。
 
-### Step 4: Multi-Timeframe Verification
+## 4. 从事实到决策
 
-| Trading Level  | Reference Level | Validation Rule                      |
-| -------------- | --------------- | ------------------------------------ |
-| 1m, 5m (Scalp) | 1H              | 1H trend direction = trade direction |
-| 15m            | 4H              | 4H trend direction = trade direction |
-| 1H             | 4H, 1D          | Daily not strong bearish to go long  |
-| 4H, 1D (Swing) | 1D, 1W          | Weekly trend confirmation            |
+1. **趋势与波动**：均线、DMI/ADX、ATR 描述方向与风险。大周期下跌增加不确定性，不自动否决左侧。
+2. **位置与折价**：说明波段和价格锚、回撤和距候选区距离；核对支撑与斐波那契实现。
+3. **动量与成交**：RSI、MACD、KDJ、布林带、OBV 描述变化，不把相关指标堆成独立投票。
+4. **持有依据与反证**：说明已核实逻辑、未知信息及失效证据。技术折价不替代价值判断。
+5. **预算与情景**：检查继续跌至下一档、越过风险线或长期不反弹时是否可承担。
+6. **当前行动**：满足资格才给分批方案；否则说明等待条件。分别讨论已有持仓和新增资金。
 
-**Signal Degradation Rules:**
+不使用“高周期反向，置信度固定减半”或“周线转多才可以买”。置信度描述证据质量，不冒充胜率。
 
-- Higher timeframe opposes signal -> Reliability -50%
-- Higher timeframe in strong opposite trend -> Ignore lower timeframe signal
-- Higher timeframe ranging + lower signal -> Normal execution
+## 5. 输出
 
-### Step 5: Output Trade Plan
+策略回答应包含：
 
-Every analysis MUST include:
+- 实际交易对、现货或 SWAP、周期、数据时间。
+- 市场状态的事实与推断、主要风险及数据缺口。
+- 左侧结论：条件性试探、按计划分批、等待价位、暂停加仓或逻辑失效，并说明依据。
+- 各批区域、触发、占固定预算比例、剩余资金及原持仓处理。
+- 暂停或退出条件、继续下跌情景与复核触发。
+- 反弹后的持有或减仓条件，不因上涨自动追加。
 
-1. **Direction**: Long / Short / Neutral
-2. **Entry Zone**: Price range for entry
-3. **Stop Loss**: Based on ATR (1.5-2x ATR from entry)
-4. **Take Profit**: Based on Fibonacci extension or ATR (2-3x ATR)
-5. **Position Size**: Based on risk rules
-6. **Confidence Level**: High / Medium / Low
+多批次可用表格，简单查询不套完整模板。缺少预算或持有依据时，标明条件性示例，不写成已适合用户的买入指令。
 
-------
+## 行为验收场景
 
-## Policy: Mandatory Rules (NEVER VIOLATE)
+以下不是实际资产建议：
 
-### Analysis Rules
-
-| Rule            | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| Real Data First | NEVER output analysis without fetching actual market data |
-| Multi-Indicator | NEVER conclude based on single indicator                  |
-| Multi-Timeframe | MUST verify with higher timeframe before trading signals  |
-| Complete Flow   | NEVER skip any of the 4 analysis dimensions               |
-
-### Forbidden Actions
-
-- Skipping data fetch and making up analysis
-- Single indicator conclusions (e.g., "RSI oversold = buy")
-- Ignoring higher timeframe context
-- Making predictions without data
-
-------
-
-## Risk Management Rules
-
-### Leverage Guidelines
-
-| Signal Strength | ADX   | ATR% | Recommended Leverage |
-| --------------- | ----- | ---- | -------------------- |
-| Strong          | > 40  | < 3% | 8x ~ 10x             |
-| Strong          | > 40  | > 3% | 5x ~ 7x              |
-| Medium          | 25-40 | < 3% | 5x ~ 7x              |
-| Medium          | 25-40 | > 3% | 3x ~ 5x              |
-| Weak            | < 25  | Any  | 3x or observe        |
-
-### Position Limits
-
-| Metric            | Limit             |
-| ----------------- | ----------------- |
-| Single Trade Loss | <= 2% of account  |
-| Total Exposure    | <= 30% of account |
+| 输入情境 | 应有行为 | 不应出现 |
+| --- | --- | --- |
+| 已大涨、多头排列、远离买入区 | 描述强趋势并检查价格适配性 | 仅因趋势明显而追买 |
+| 仍下跌但到计划价位，逻辑预算有效 | 评估按档买入及继续下跌风险 | 必须先金叉或周线转多 |
+| 普通回撤，没有恐慌 | 评估价格依据与分批资格 | 因无恐慌判为资产死亡 |
+| 深跌超卖，持有依据已失效 | 暂停加仓，复核退出 | 因便宜继续摊低成本 |
+| 收到 Tesla / 特斯拉 | 解析为 TSLA，直接查询 TSLA-USDT-SWAP | 使用公司全称拼接交易对 |
+| 公司代码查询失败 | 披露失败，核实参数、网络或覆盖 | 忽略公司查询或当作利空 |
+| 衍生数据缺失但价格有效 | 标注缺口，继续有限分析 | 编造费率或把空结果当零 |
+| 到下一档但预算耗尽 | 停止新增，复核计划 | 临时扩大预算 |
+| 只有单条 summary | 描述当前值 | 声称已确认背离或交叉 |

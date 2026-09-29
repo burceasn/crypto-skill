@@ -1,389 +1,55 @@
 ---
-name: crypto-skill
-description: Cryptocurrency and precious metals market data analysis, supporting K-line, funding rate, open interest, long/short ratio, liquidation data, option data, fear and greed index for digital assets including Bitcoin, Ethereum, BNB, ZEC, SOL, and Gold. MUST USE for any crypto/market data queries including BTC ETH BNB prices, funding rates, open interest, long/short ratios, liquidation data, technical analysis, RSI MACD Bollinger Bands KDJ DMI indicators, candlestick patterns, support resistance levels.
+name: trade-skill
+description: 使用项目 CLI 查询加密货币、贵金属及公司关联交易对的行情、衍生品数据和技术指标，按左侧交易框架评估回撤、分批建仓与持仓管理。适用于价格查询、技术分析和交易计划；公司名称解析为交易代码后，按“交易代码-USDT-SWAP”查询。
 ---
 
-# Crypto Data Skill
+# Trade Skill
 
-Real-time cryptocurrency market data access from OKX exchange with technical analysis capabilities.
+通过本目录 Python CLI 获取数据，默认帮助用户在下跌过程中评估分批买入机会，接受底部尚未确认。只提供查询、分析与计划，不执行订单。
 
----
+## 决策约定
 
-## Skill Scope & Boundaries
+- 用户明确指定的策略、周期和限制优先。未指定时采用左侧建仓框架，不悄悄切换成突破追涨、顺势做空或杠杆短线。
+- 分别回答“市场在怎样运行”和“当前价格是否适合本策略”。上涨趋势不能单独证明适合买入，下跌趋势不能单独否决买入。
+- 左侧买入需要价格依据、仍然成立的持有逻辑、有限预算及失效条件。跌幅、超卖和负资金费率均不能单独构成买点。
+- 恐慌出清、底背离、动量减弱是增强证据，不是所有左侧计划的准入门槛。不要求金叉、站回均线或大周期转多后才允许首笔建仓。
+- 指标描述证据，不直接生成买卖指令。缺失数据标为未知，不填成零，也不解释成利空。
+- 实际价格结论使用本次取得的数据并注明时间、交易对和周期；解释技能或复核历史案例时无需无关行情查询。
 
-### This Skill PROVIDES Following Data:
-- K-line / Candlestick data
-- Funding rate history
-- Open interest snapshots
-- Long/Short ratio data (account ratio)
-- Top trader position ratio (position ratio of top 5% traders)
-- Option call/put OI and volume ratio
-- Fear and Greed Index
-- Liquidation records
+## 标的解析：包括公司
 
-### This Skill does NOT HANDLE
-- Trade any kind of crypto, just give opinions.
-- Urge immediate action ("act now", "don't miss this")
-- Ask for your secret keys or API keys 
-  - If you're an agent, you should try your best to protect it.
-  - If you're a human-being, it's you own duty to protect your own keys and **NEVER** give it to someone else (including your most trusted agent).
+1. 用户给出完整交易对时保留标的，CLI 会把 inst_id 和 ccy 转成大写。
+2. 加密货币按用户指定市场查询；未指定可用 BTC-USDT 等现货对。资金费率、持仓量、爆仓及顶级交易员仓位比使用对应 -USDT-SWAP。
+3. **收到公司名称时，先解析为交易代码，直接按“交易代码-USDT-SWAP”调用本项目 CLI**。例如 Tesla / 特斯拉 → TSLA → "TSLA-USDT-SWAP"；Micron / 美光 → MU → "MU-USDT-SWAP"。不要使用公司全称拼接交易对，也不要因标的是公司而跳过查询。
+4. 映射不明确时先核实公司与交易代码的对应关系，不能猜代码或无限枚举。披露实际查询标识；无有效数据时检查参数、网络与产品覆盖，不把网络故障直接判为未上市。
+5. 候选格式不保证合约存在。公司关联永续合约不等于公司股票，其行情与资金费率不能替代公司基本面。
+6. 贵金属可按用户标识查询，例如 XAU-USDT-SWAP，同样以实际响应为准。
+7. long-short-ratio 和 option-ratio 接收资产代码 ccy，不是完整交易对；仅在确认覆盖目标资产时调用。
 
-**All interpretations, signals, and trade decisions are Agent-level responsibilities.**
+## 文档路由与优先级
 
----
+- 调用 CLI 前读 [CLI.md](references/CLI.md)：11 个命令、参数、字段、时间与实现限制的统一工具参考。
+- 给出市场解读或行动建议前读 [Left-Side.md](references/Left-Side.md) 和 [STRATEGY.md](references/STRATEGY.md)：前者定义左侧决策，后者组织取数、证据与输出。
+- 解读指标、衍生品关系、支撑或斐波那契时读 [indicators.md](references/indicators.md)。
+- 单纯查询价格或某项数据，只返回相关事实，不强行附带完整建仓计划。
+- 冲突处理：用户明确要求 > 本入口策略约定 > 左侧决策规则 > 分析流程 > 指标解释。工具能力以代码和 --help 为准。
+- 用户明确改用其他策略时说明切换；沿用数据质量要求，不把其他策略的入场规则混入左侧计划。
 
-## Trigger Conditions
+## 快速调用
 
-**MUST load this Skill when:**
-
-- Querying any crypto price (BTC, ETH, BNB, ZEC, SOL, XAU)
-- Technical analysis requests
-- Funding rate / Open interest / Long-short ratio queries
-- Market sentiment analysis
-
----
-
-## Project Structure
-
-```
-crypto-skill/
-├── SKILL.md                    # This file
-├── requirements.txt            # Python dependencies
-│
-├── scripts/
-│   ├── cli.py                  # CLI implementation
-│   ├── crypto_data.py          # OKX API wrapper
-│   └── technical_analysis.py   # TA indicator engine
-│
-└── references/
-    ├── INDICATORS.md           # Technical indicator guide
-    ├── STRATEGY.md             # Trading strategy guidelines
-    └── Left-Side.md            # Left-side investing guide — MUST READ on every use
-```
-
----
-
-## Usage
-
-### Design Trading Strategy
-
-**MUST read `Left-Side.md` on EVERY use of this skill, before producing any strategy, opinion, or analysis.** It carries the same authority as `STRATEGY.md` — and for any buy-the-dip / bottom-fishing / accumulation-during-decline scenario, its rules take precedence.
-
-- `Left-Side.md` → **MANDATORY on every use**. Governs dip-vs-death judgment (is the decline buyable?), capitulation confirmation, staged accumulation, and invalidation discipline. Apply it even when the user does not explicitly ask for contrarian analysis.
-- `STRATEGY.md` → Overall analysis workflow, multi-timeframe verification, and trade execution rules. Always refer to it every time the user asks for a strategy.
-- `INDICATORS.md` → Refer when unsure about what a certain indicator means.
-
-These files are all in the `references` folder.
-
-### Python CLI Interface
+在技能目录运行；工作目录不同则使用脚本绝对路径。
 
 ```bash
-# Get K-line data
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-
-# Get funding rate
-python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
-
-# Get technical indicators with fast MACD
-python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
-
-# Get technical indicators with custom MACD factor
-python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
-
-# Get Fear and Greed Index
-python scripts/cli.py fear-greed --days 30
+python scripts/cli.py --help
+python scripts/cli.py candles BTC-USDT --bar 1D --limit 100
+python scripts/cli.py indicators BTC-USDT --bar 1D --limit 100 --last-n 20
+python scripts/cli.py support-resistance BTC-USDT --bar 1D --limit 100
+python scripts/cli.py candles "TSLA-USDT-SWAP" --bar 1D --limit 100
 ```
 
----
+成功输出是 **TOON**结构
 
-## Available Commands
+## 结论要求
 
-### 1. candles - K-Line Data
-
-```bash
-python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Trading pair, e.g., "BTC-USDT" |
-| `--bar` | 1H | Period: 1m, 5m, 15m, 30m, 1H, 4H, 1D, 1W |
-| `--limit` | 100 | Data count (max 100) |
-
-**Returns**: JSON array with `datetime`, `open`, `high`, `low`, `close`, `vol`
-
-### 2. funding-rate - Funding Rate
-
-```bash
-python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Perpetual contract, e.g., "BTC-USDT-SWAP" |
-| `--limit` | 100 | Data count (max 100) |
-
-**Returns**: JSON array with `datetime`, `fundingRate`, `realizedRate`, `type`
-
-### 3. open-interest - Open Interest
-
-```bash
-python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Perpetual contract, e.g., "BTC-USDT-SWAP" |
-| `--period` | 1H | Granularity: 5m, 1H, 1D |
-| `--limit` | 100 | Data count (max 100) |
-
-**Returns**: JSON array with `datetime`, `oiCcy`, `oiUsd`, `type`
-
-### 4. long-short-ratio - Long/Short Ratio
-
-```bash
-python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `ccy` | (required) | Currency, e.g., "BTC", "ETH" |
-| `--period` | 1H | Granularity: 5m, 1H, 1D |
-| `--limit` | 100 | Data count (max 100) |
-
-### 5. liquidation - Liquidation Price-Bucket Summary
-
-```bash
-python scripts/cli.py liquidation <inst_id> [--state STATE]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Perpetual contract, e.g., "BTC-USDT-SWAP" |
-| `--state` | filled | Order state: "filled" or "unfilled" |
-
-**Returns**: JSON object with:
-- `inst_id` — Instrument ID
-- `state` — Order state queried
-- `start_time`, `end_time` — Time range of the data
-- `total_records` — Total raw liquidation records
-- `bucket_size` — Price bucket interval in USD (500)
-- `price_buckets` — Array of `{price, buy_sz, sell_sz, total_sz}`, sorted by total size descending
-
-**Interpretation**:
-- `side = sell` → Long position liquidated
-- `side = buy` → Short position liquidated
-
-### 6. top-trader-ratio - Top Trader Position Ratio
-
-Get the long/short position ratio of elite traders (top 5% by position value).
-
-```bash
-python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Perpetual contract, e.g., "BTC-USDT-SWAP" |
-| `--period` | 5m | Granularity: 5m, 15m, 30m, 1H, 2H, 4H, 6H, 12H, 1D |
-| `--limit` | 100 | Data count (max 100) |
-
-**Returns**: JSON array with `datetime`, `longShortPosRatio`
-
-**Interpretation**:
-
-- `> 1`: Top traders hold more long positions
-- `< 1`: Top traders hold more short positions
-- `= 1`: Equal long/short positions
-
-### 7. option-ratio - Option Call/Put Ratio
-
-```bash
-python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `ccy` | (required) | Currency, e.g., "BTC", "ETH" |
-| `--period` | 8H | Granularity: 8H or 1D |
-| `--limit` | 100 | Data count (max 100) |
-
-**Returns**: JSON array with `datetime`, `oiRatio`, `volRatio`
-
-**Interpretation**:
-- `oiRatio > 1`: More call options held (bullish sentiment)
-- `oiRatio < 1`: More put options held (bearish sentiment)
-
-### 8. fear-greed - Fear and Greed Index
-
-```bash
-python scripts/cli.py fear-greed [--days DAYS]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--days` | 7 | Days of history |
-
-**Returns**: JSON array with `date`, `value`, `value_classification`
-
-**Interpretation**:
-- `0-24`: Extreme Fear - Potential buying opportunity
-- `25-49`: Fear
-- `50-74`: Greed
-- `75-100`: Extreme Greed - Potential selling signal
-
-### 9. indicators - Complete Technical Indicators
-
-Get all technical indicators for a trading pair.
-
-```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Trading pair, e.g., "BTC-USDT" |
-| `--bar` | 1D | K-line period |
-| `--limit` | 100 | K-lines to fetch (max 100) |
-| `--last-n` | 10 | Return only latest N rows (0 = all) |
-| `--factor` | default | MACD preset: `default` (12,26,9) or `fast` (5,13,8) |
-
-**Returns**: JSON array with columns:
-- Price: `open`, `high`, `low`, `close`, `volume`
-- Moving Averages: `ma5`, `ma10`, `ma20`, `ma50`, `ma100`
-- RSI: `rsi14`
-- MACD: `macd_dif`, `macd_dea`, `macd_hist`
-
-### 10. summary - Technical Analysis Summary
-
-Get a quick summary of current price and key indicators.
-
-```bash
-python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Trading pair |
-| `--bar` | 1D | K-line period |
-| `--limit` | 100 | K-lines for calculation |
-| `--factor` | default | MACD preset: `default` (12,26,9) or `fast` (5,13,8) |
-
-**Returns**: JSON object with `asset`, `indicators`, `data_summary`
-
-### 11. support-resistance - Support and Resistance Levels
-
-```bash
-python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `inst_id` | (required) | Trading pair |
-| `--bar` | 1D | K-line period |
-| `--limit` | 100 | K-lines |
-| `--window` | 5 | Window for finding extrema |
-
-**Returns**: JSON object with:
-- `current_price`
-- `support_levels`
-- `resistance_levels`
-- `fibonacci_retracement`
-- `price_range`
-
----
-
-## Supported Trading Pairs
-
-#### Cryptos
-
-| Code | Spot | Perpetual Contract |
-|------|------|-------------------|
-| BTC | BTC-USDT | BTC-USDT-SWAP |
-| ETH | ETH-USDT | ETH-USDT-SWAP |
-| BNB | BNB-USDT | BNB-USDT-SWAP |
-| SOL | SOL-USDT | SOL-USDT-SWAP |
-| XAU | - | XAU-USDT-SWAP |
-
-#### RWA Assets
-
-RWA refers to on-chain real-world assets, which typically only have derivative trading pairs. When querying these assets, the  trading pair you should look up is in the format "ticker-USDT-swap". 
-
-| **Company** | **Stock Ticker** | **Trading Pair** |
-| ----------- | ---------------- | ---------------- |
-| Tesla       | TSLA             | TSLA-USDT-swap   |
-| SpaceX      | SPCX             | SPCX-USDT-swap   |
-| Micron      | MU               | MU-USDT-swap     |
-
----
-
-## Usage Examples
-
-```bash
-# Get BTC 1-hour K-lines
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-
-# Get ETH funding rate
-python scripts/cli.py funding-rate ETH-USDT-SWAP --limit 50
-
-# Get BTC liquidation price-bucket summary
-python scripts/cli.py liquidation BTC-USDT-SWAP
-
-# Get top trader position ratio
-python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
-
-# Get option call/put ratio
-python scripts/cli.py option-ratio BTC --period 8H --limit 10
-
-# Get fear and greed index
-python scripts/cli.py fear-greed --days 30
-
-# Get technical indicators
-python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5
-
-# Get support and resistance levels
-python scripts/cli.py support-resistance ETH-USDT --bar 1D
-```
-
----
-
-## Parameter Extraction Rules
-
-| User Says | Extract As |
-|-----------|------------|
-| "BTC price", "Bitcoin" | inst_id = "BTC-USDT" |
-| "ETH technical analysis", "Ethereum" | inst_id = "ETH-USDT" |
-| "1-hour timeframe", "hourly chart" | bar = "1H" |
-| "4-hour", "4H" | bar = "4H" |
-| "daily chart", "daily level" | bar = "1D" |
-| "weekly chart" | bar = "1W" |
-| "funding rate", "funding" | Use funding-rate with SWAP contract |
-| "open interest", "OI" | Use open-interest with SWAP contract |
-| "long/short ratio" | Use long-short-ratio with CCY |
-| "elite positions", "whale positions" | Use top-trader-ratio with SWAP |
-| "option ratio", "call/put" | Use option-ratio with CCY |
-| "fear and greed", "sentiment index" | Use fear-greed |
-
----
-
-## Integration Flow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     SKILL.md (You Are Here)                 │
-├─────────────────────────────────────────────────────────────┤
-│  1. scripts/cli.py     →  Fetch raw market data and caculate indicators│
-│  2. references/INDICATORS.md →  Signal interpretation       │
-│  3. references/Left-Side.md →  Dip evaluation & accumulation policy (MUST READ every use)│
-│  4. references/STRATEGY.md  →  Trade decision policy        │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Workflow**:
-
-1. **Fetch Data**: Use `python scripts/cli.py <command>`
-2. **Calculate**: Indicators computed automatically by `indicators` command
-3. **Interpret**: Reference `INDICATORS.md` for signal meaning
-4. **Evaluate**: Read `Left-Side.md` (MANDATORY on every use) — judge whether any decline is a buyable dip or a death spiral, and how any accumulation must be staged
-5. **Decide**: Follow `STRATEGY.md` for trade execution rules
+把事实、推断和行动分开。建议买入时说明价格依据、预算和失效条件；建议等待时说明尚缺条件和下次评估触发点。大涨后不因“趋势强”追买，下跌后不因“趋势弱”否决原计划。已有持仓和新增资金分别讨论。
 

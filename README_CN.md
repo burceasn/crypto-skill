@@ -1,241 +1,60 @@
-# 加密货币技术分析技能
+# trade-skill
 
-[![English](https://img.shings.io/badge/lang-English-blue.svg)](README.md) [![中文](https://img.shings.io/badge/lang-中文-red.svg)](README_CN.md)
+[English](README.md) · [技能入口](SKILL.md) · [CLI 参考](references/CLI.md)
 
-> 基于 Python 的加密货币市场数据与技术分析工具包
+基于现有 Python CLI 获取 OKX 行情、衍生品数据及技术指标，并以左侧交易框架评估下跌中的分批建仓机会。支持查询加密货币、贵金属和公司关联交易对；具体产品与数据覆盖以接口响应为准。
 
-一个 AI 就绪的技能，提供来自 OKX 交易所的实时加密货币市场数据和全面的技术指标计算。专为命令行使用而设计。
+## 默认分析风格
 
-## 功能特性
+趋势描述与买入决策分开：上涨不自动推荐追买，下跌不自动否决承接。普通回撤、深度调整和恐慌出清均可评估；极端恐慌或确认反转不是统一入场前提。
 
-### 市场数据命令
+具体行动由价格依据、持有逻辑、预算、已有仓位和失效条件决定。左侧不等于无条件越跌越买。用户明确指定其他策略时，以用户要求为准。工具只查询和分析，不下单。
 
-| 命令 | 描述 |
-|---------|-------------|
-| `candles` | K线/OHLCV 数据（1分钟到1周时间周期） |
-| `funding-rate` | 永续合约资金费率 |
-| `open-interest` | 持仓量（含美元估值） |
-| `long-short-ratio` | 账户多空比 |
-| `top-trader-ratio` | 前5%交易员多空仓位比 |
-| `option-ratio` | 期权看涨/看跌持仓量和交易量比 |
-| `fear-greed` | 恐惧贪婪指数（alternative.me） |
-| `liquidation` | 价格区间爆仓汇总（按$500区间聚合） |
+## 安装与运行
 
-### 技术分析命令
-
-| 命令 | 描述 |
-|---------|-------------|
-| `indicators` | 完整技术指标（MA, RSI, MACD, KDJ 等），支持MACD预设参数 |
-| `summary` | 结构化摘要：价格 + 趋势/动量/波动率分类 |
-| `support-resistance` | 支撑/阻力位和斐波那契回撤 |
-
-### 技术指标
-
-| 类别 | 指标 |
-|----------|------------|
-| **趋势** | MA (5/10/20/50/100), EMA (12/26), DMI/ADX |
-| **动量** | RSI (6/14), MACD (DIF/DEA/柱状图), KDJ |
-| **波动率** | 布林带, ATR |
-| **成交量** | OBV (能量潮指标) |
-| **结构** | 斐波那契回撤, 支撑/阻力位 |
-
-### 支持的资产
-
-| 代码 | 名称 | 现货 | 永续合约 |
-|------|------|------|-----------|
-| BTC | 比特币 | BTC-USDT | BTC-USDT-SWAP |
-| ETH | 以太坊 | ETH-USDT | ETH-USDT-SWAP |
-| BNB | BNB | BNB-USDT | BNB-USDT-SWAP |
-| SOL | Solana | SOL-USDT | SOL-USDT-SWAP |
-| ZEC | 大零币 | ZEC-USDT | ZEC-USDT-SWAP |
-| XAU | 黄金 | - | XAU-USDT-SWAP |
-
-### 支持的 RWA 资产
-
-RWA 指链上真实世界资产，通常只有衍生品交易对。查询时请使用 "ticker-USDT-swap" 格式。
-
-| 公司 | 股票代码 | 交易对 |
-|------|----------|--------|
-| Tesla（特斯拉） | TSLA | TSLA-USDT-swap |
-| SpaceX | SPCX | SPCX-USDT-swap |
-| Micron（美光） | MU | MU-USDT-swap |
-
-## 安装
-
-### 前置条件
-
-- Python 3.11+
-- 可访问 OKX API 的网络
-
-### 设置
+使用 Python 3.11+，在项目目录安装依赖：
 
 ```bash
-# 克隆仓库
-git clone https://github.com/burceasn/crypto-skill.git
-cd crypto-skill
-
-# 安装依赖
-pip install -r requirements.txt
-```
-
-## 使用方法
-
-### Python CLI
-
-```bash
-# 获取 K 线数据
-python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
-
-# 获取资金费率
-python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
-
-# 获取技术指标
-python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 5
-
-# 使用快速MACD预设参数(5, 13, 8)获取技术指标
-python scripts/cli.py indicators BTC-USDT --bar 4H --last-n 5 --factor fast
-
-# 获取价格区间爆仓汇总
-python scripts/cli.py liquidation BTC-USDT-SWAP
-
-# 获取恐惧贪婪指数
-python scripts/cli.py fear-greed --days 30
-
-# 获取支撑阻力位
+python -m pip install -r requirements.txt
+python scripts/cli.py --help
+python scripts/cli.py indicators BTC-USDT --bar 1D --limit 100 --last-n 20
 python scripts/cli.py support-resistance BTC-USDT --bar 1D
 ```
 
-### 命令参考
+技能名称已经是 trade-skill。安装为技能时，将包含 SKILL.md、scripts、references 和 requirements.txt 的目录命名为 trade-skill。源码工作目录可以保留原名；修改仓库不会自动更新已安装的旧副本。
 
-#### candles - K线数据
+## 公司名称查询
+
+收到公司名称，先解析为交易代码，再通过 CLI 直接按“交易代码-USDT-SWAP”查询。例如 Tesla / 特斯拉解析为 TSLA：
+
 ```bash
-python scripts/cli.py candles <inst_id> [--bar BAR] [--limit LIMIT]
-# 示例: python scripts/cli.py candles BTC-USDT --bar 1H --limit 100
+python scripts/cli.py candles "TSLA-USDT-SWAP" --bar 1D --limit 100
 ```
 
-#### funding-rate - 资金费率
-```bash
-python scripts/cli.py funding-rate <inst_id> [--limit LIMIT]
-# 示例: python scripts/cli.py funding-rate BTC-USDT-SWAP --limit 50
-```
+不使用公司全称拼接交易对。映射不明确时先核实，并披露实际查询标识。示例不保证合约存在，查询失败不代表看空。公司合约不是股票，也不提供公司基本面。
 
-#### open-interest - 持仓量
-```bash
-python scripts/cli.py open-interest <inst_id> [--period PERIOD] [--limit LIMIT]
-# 示例: python scripts/cli.py open-interest BTC-USDT-SWAP --period 1H --limit 50
-```
+## 工具与文档
 
-#### indicators - 技术指标
-```bash
-python scripts/cli.py indicators <inst_id> [--bar BAR] [--limit LIMIT] [--last-n N] [--factor FACTOR]
-# 示例: python scripts/cli.py indicators ETH-USDT --bar 4H --last-n 10
-# MACD预设参数通过 --factor 指定: default (12,26,9) 或 fast (5,13,8)
-```
+全部 11 个命令的参数、字段和限制集中在 [CLI.md](references/CLI.md)，避免多处说明不一致。
 
-#### fear-greed - 恐惧贪婪指数
-```bash
-python scripts/cli.py fear-greed [--days DAYS]
-# 示例: python scripts/cli.py fear-greed --days 30
-```
+| 命令 | 功能 |
+| --- | --- |
+| candles | K 线与成交量 |
+| indicators | 多行完整指标 |
+| summary | 最新指标分类快照 |
+| support-resistance | 局部极值与区间比例 |
+| funding-rate | 历史及当前/预测费率 |
+| open-interest | 历史与实时未平仓量 |
+| long-short-ratio | 账户多空比 |
+| top-trader-ratio | 顶级交易员仓位比 |
+| option-ratio | 期权比值原始字段 |
+| liquidation | 固定价格桶强平汇总 |
+| fear-greed | alternative.me 情绪历史 |
 
-#### long-short-ratio - 多空比
-```bash
-python scripts/cli.py long-short-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-# 示例: python scripts/cli.py long-short-ratio BTC --period 1H --limit 50
-```
+- [SKILL.md](SKILL.md)：技能发现、标的解析、文档路由和策略优先级。
+- [Left-Side.md](references/Left-Side.md)：入场资格、分批资金、失效和产品边界。
+- [STRATEGY.md](references/STRATEGY.md)：取数、证据组织、输出及行为验收场景。
+- [indicators.md](references/indicators.md)：指标的左侧用途与误读边界。
+- scripts/cli.py：命令入口；crypto_data.py：数据访问；technical_analysis.py：指标计算。
 
-#### option-ratio - 期权看涨看跌比
-```bash
-python scripts/cli.py option-ratio <ccy> [--period PERIOD] [--limit LIMIT]
-# 示例: python scripts/cli.py option-ratio BTC --period 8H --limit 20
-```
-
-#### top-trader-ratio - 顶级交易员仓位比
-```bash
-python scripts/cli.py top-trader-ratio <inst_id> [--period PERIOD] [--limit LIMIT]
-# 示例: python scripts/cli.py top-trader-ratio BTC-USDT-SWAP --period 1H --limit 24
-```
-
-#### liquidation - 价格区间爆仓汇总
-```bash
-python scripts/cli.py liquidation <inst_id> [--state STATE]
-# 示例: python scripts/cli.py liquidation BTC-USDT-SWAP
-```
-
-返回按 $500 价格区间聚合的爆仓记录，按总量降序排列。`side = sell` 表示多头爆仓；`side = buy` 表示空头爆仓。
-
-#### summary - 技术分析摘要
-```bash
-python scripts/cli.py summary <inst_id> [--bar BAR] [--limit LIMIT] [--factor FACTOR]
-# 示例: python scripts/cli.py summary BTC-USDT --bar 1D
-```
-
-#### support-resistance - 支撑阻力位
-```bash
-python scripts/cli.py support-resistance <inst_id> [--bar BAR] [--limit LIMIT] [--window N]
-# 示例: python scripts/cli.py support-resistance ETH-USDT --bar 1D
-```
-
-## 项目结构
-
-```
-crypto-skill/
-├── README.md                   # 英文文档
-├── README_CN.md                # 中文文档（本文件）
-├── SKILL.md                    # 技能文档
-├── requirements.txt            # Python 依赖
-│
-├── scripts/
-│   ├── cli.py                  # CLI 实现
-│   ├── crypto_data.py          # OKX API 封装
-│   └── technical_analysis.py   # 技术分析引擎
-│
-└── references/
-    ├── INDICATORS.md           # 技术指标指南
-    ├── STRATEGY.md             # 交易策略指南
-    └── Left-Side.md            # 左侧投资（反向建仓）指南
-```
-
-## Python API（高级用法）
-
-对于程序化访问，可以直接导入模块：
-
-```python
-from scripts.crypto_data import get_okx_candles, get_fear_greed_index
-from scripts.technical_analysis import TechnicalAnalysis
-
-# 获取 K 线数据
-df = get_okx_candles("BTC-USDT", bar="1H", limit=100)
-
-# 计算指标
-kline_data = df.to_dict(orient="records")
-ta = TechnicalAnalysis(kline_data=kline_data, inst_id="BTC-USDT", bar="1H")
-indicators = ta.get_all_indicators()
-print(indicators.tail(5))
-```
-
-## 输出格式
-
-所有命令输出 JSON 到标准输出，便于：
-
-- 管道处理：`python scripts/cli.py candles BTC-USDT | jq '.[0]'`
-- 保存文件：`python scripts/cli.py indicators BTC-USDT > analysis.json`
-- 脚本处理：`result=$(python scripts/cli.py fear-greed --days 7)`
-
-## 依赖要求
-
-```
-pandas>=2.0.0
-numpy>=1.24.0
-requests>=2.31.0
-urllib3>=2.0.0
-toon-format==0.9.0b1
-```
-
-## 免责声明
-
-**⚠️ 重要提示：** 本技能仅提供技术分析和持仓建议，不支持直接进行交易。出于对网络安全以及对自己资金负责的态度，**强烈不建议**将自己的加密货币完全交给 AI 代理负责，无论该代理有多强大。
-
-## 许可证
-
-MIT 许可证 - 随意使用、分支、学习。
+成功输出为 **TOON，而不是 JSON**；错误可能为 JSON 或异常。需检查空值、时间及末根 K 线状态。当前没有 MA200、公司估值、账户或下单功能。支撑和斐波那契输出的实现限制见 CLI 参考，不将其直接当作买卖信号。

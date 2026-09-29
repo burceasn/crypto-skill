@@ -1,361 +1,81 @@
-# Technical Indicators Reference
+# 指标解释：事实、左侧用途与限制
 
-> Knowledge base for signal interpretation. Agent policy (`AGENTS.md`) references this document for analysis.
+指标是证据，不是自动买卖信号。趋势方向、价格吸引力、建仓资格分别判断。不声称阈值保证反转或具有未经验证的胜率。
 
----
+## 趋势
 
-## Trend Indicators
+| 字段 | 描述 | 左侧用途与边界 |
+| --- | --- | --- |
+| ma5 / ma10 / ma20 / ma50 / ma100 | 对应根数的收盘价简单均线 | 距离与区域参照；多头排列不等于买点，空头排列不禁止买入 |
+| plus_di / minus_di | 14 期方向运动指数平滑后的相对强度 | 描述方向，不直接映射开多或开空 |
+| adx | 方向运动差异的平滑强度 | 不表示方向；高值提示逆势风险，不要求顺势加仓 |
 
-### MA (Moving Average)
+周期是 K 线根数：周线 MA50 是 50 周。没有 ma200、独立 ema12/ema26 输出；EMA 只在 MACD 内部计算。样本不足时不能编造长期均线。
 
-**Purpose**: Smooth price fluctuations, reveal trend direction.
+## 动量
 
-**Formula**: $MA(N) = \dfrac{C_1 + C_2 + \cdots + C_N}{N}$
+| 字段 | 事实 | 左侧解释 |
+| --- | --- | --- |
+| rsi14 | 相对上涨/下跌动量；30/70 可作观察阈值 | 低值仅提示候选，不证明价值或底部；高值不自动做空 |
+| macd_dif / macd_dea | 快慢 EMA 差值及信号线 | 负值仍可有左侧机会；金叉是可选增强证据 |
+| macd_hist | 2 × (DIF − DEA) | 负柱绝对值减小表示负向差值减弱，不保证停止下跌 |
+| kdj_k / kdj_d / kdj_j | 9 根区间位置，经 com=2 指数平滑；J=3K−2D | 可长时间钝化，低位不是自动买点 |
 
-| Period | Meaning | Application |
-|--------|---------|-------------|
-| MA5 | Weekly average (ultra-short) | Immediate trend, frequent crossovers |
-| MA10 | 2-week average (short) | Short-term support/resistance |
-| MA20 | Monthly average (medium-short) | Swing trading core reference |
-| MA50 | 2-month average (medium) | Medium-term trend boundary |
-| MA200 | Long-term average | Bull/Bear divider, institutional focus |
+RSI 使用 alpha=1/14 指数平滑；MACD default 为 12/26/9，fast 为 5/13/8。比较时保持参数一致，fast 不等于更准确。
 
-**Signals**:
+交叉至少需要前后两条有效值；背离需对齐两个有意义的价格摆动及其指标。summary 单行不能证明这些变化。柱体按正负数值解释，不依赖平台颜色。
 
-| Pattern | Signal | Meaning |
-|---------|--------|---------|
-| Golden Cross (short MA crosses above long MA) | Buy | Short-term momentum > long-term |
-| Death Cross (short MA crosses below long MA) | Sell | Short-term momentum < long-term |
-| Bullish Alignment (MA5 > MA10 > MA20 > MA50) | Strong Uptrend | All timeframes agree |
-| Bearish Alignment (MA5 < MA10 < MA20 < MA50) | Strong Downtrend | All timeframes agree |
-| MA Convergence | Pending Breakout | Wait for direction confirmation |
+## 波动与成交量
 
----
+| 字段 | 当前计算 | 用途与限制 |
+| --- | --- | --- |
+| atr14 / atr14_pct | 真实波幅按 alpha=1/14 平滑；ATR/close × 100 | 批次距离与压力情景，不据此自动加杠杆 |
+| bb_mid / bb_upper / bb_lower | MA20 ± 2 × 20 根样本标准差 | 下轨附近是观察区，沿下轨代表风险但不自动否决左侧 |
+| bb_pctb | (close−lower)/(upper−lower) | 小于 0 表示下轨外，不是底部确认 |
+| bb_bandwidth | (upper−lower)/mid × 100 | 波动扩缩，不给方向与入场资格 |
+| obv | 按收盘涨跌方向累计 volume | 量价差异，不是净资金流，不能确认机构吸筹 |
 
-### EMA (Exponential Moving Average)
+量价同跌不证明只是正常回撤，同涨不证明可持续。volume 单位取决于产品，不直接跨现货和合约比较。布林带、RSI、KDJ 均依赖价格，不作为完全独立的三票。
 
-**Purpose**: More weight on recent prices, faster response than MA.
+## 支撑阻力与斐波那契
 
-**Formula**: $EMA(t) = \alpha \cdot Price(t) + (1 - \alpha) \cdot EMA(t-1)$, where $\alpha = \dfrac{2}{N+1}$
+support-resistance 以局部极值寻找水平位：window=5 时左右各需 5 根，最近 5 根的潜在拐点尚不能确认。输出未去重，未按距现价排序，也不保证 support_levels 都低于现价；结合现价、形成时间与破位情况重新判断角色。
 
-**Key Periods**:
+CLI 的 fibonacci_retracement 实际计算：
 
-- **EMA12**: Short-term momentum, MACD fast line basis
-- **EMA26**: Medium-term momentum, MACD slow line basis
+```text
+level(r) = sample_low + (sample_high - sample_low) × r
+r ∈ {0, 0.236, 0.382, 0.5, 0.618, 0.786, 1}
+```
 
-**vs MA**: EMA reacts faster to sudden moves, better for volatile crypto markets.
+这是样本全区间从低到高的位置，没有识别上一轮上涨波段。高点先于低点时尤其不能直接称为上涨回撤。
 
----
+另行确认先低后高的上涨波段 L→H 后，从高点回撤 f 才是：
 
-### DMI (Directional Movement Index)
+```text
+retracement(f) = H - (H - L) × f
+```
 
-**Purpose**: Measure trend strength AND direction.
+L=100、H=200 时，回撤 61.8% 对应 138.2；CLI 键 0.618 对应 161.8。不能混用。衍生计算披露波段、时间与公式。
 
-**Components**:
-- **+DI**: Upward momentum strength
-- **-DI**: Downward momentum strength
-- **ADX**: Trend strength (direction-agnostic)
+支撑与比例只是候选区域，不是底价承诺。跌破某个比例不自动意味着资产失效，按预定义计划处理。
 
-**Parameter**: Period = 14
+## 衍生品与情绪
 
-**ADX Interpretation**:
+| 数据 | 可支持的判断 | 不能直接推出 |
+| --- | --- | --- |
+| funding-rate | 支付方向、成本及相对历史的拥挤 | 负费率必涨，正费率必跌，费率升高就是健康趋势 |
+| open-interest | 未平仓规模变化和去杠杆线索 | OI 上涨必然是新多头；每份合约都有多空双方 |
+| long-short-ratio | 指定账户样本多空比 | 全市场仓位比或净资金流 |
+| top-trader-ratio | 顶级交易员样本仓位比 | 全体方向或现货持有逻辑 |
+| option-ratio | oiRatio / volRatio | 未核实分子分母就判断看涨看跌；代码未验证口径 |
+| liquidation | 返回样本的价格区间强平数量 | 全市场清算金额、未来清算热力图 |
+| fear-greed | 加密市场情绪背景 | 单个币、公司或贵金属的独立估值和情绪 |
 
-| ADX Value | Market State | Trading Strategy |
-|-----------|--------------|------------------|
-| < 20 | No trend / Ranging | Range trade, avoid trend strategies |
-| 20-25 | Trend forming | Prepare entry, await confirmation |
-| 25-40 | Trend confirmed | Trade with trend, hold position |
-| 40-50 | Strong trend | Add to position, watch for extremes |
-| > 50 | Extreme trend | Prepare exit, reversal possible |
+fundingRate 为小数，0.0001=0.01%。Current/Predicted 与 Settled 分开；不假定所有产品固定 8 小时结算，不未经核对就年化。
 
-**Direction**: $\text{Signal} = 
-\begin{cases}
-\text{Long}, & \text{if } +DI > -DI \text{ and } ADX > 25 \\
-\text{Short}, & \text{if } -DI > +DI \text{ and } ADX > 25 \\
-\text{None}, & \text{otherwise}
-\end{cases}$
+价格跌、OI 跌可与去杠杆一致，价格跌、OI 升可与新增风险仓位一致；两个数值不能确定参与者意图。oiUsd 变化含价格影响，结合 oiCcy 和同步时间分析。
 
----
+按当前工具约定，sell_sz / buy_sz 分别作为多头 / 空头强平线索。sz 未换算为美元，不跨合约比较金额。固定 500 的价格桶对低价标的可能过粗；覆盖时间取决于返回样本。
 
-## Momentum Indicators
-
-### RSI (Relative Strength Index) 
-
-**Purpose**: Measure overbought/oversold conditions and momentum.
-
-**Formula**: $RSI = 100 - \frac{100}{1 + RS}$, where $RS = \frac{\text{Avg Gain}}{\text{Avg Loss}}$
-
-**Parameter**: Period = 14
-
-**Zone Analysis**:
-
-| RSI Range | State | Action |
-|-----------|-------|--------|
-| > 80 | Extreme Overbought | Strong short signal, high reversal probability |
-| 70-80 | Overbought | Watch for short, await confirmation |
-| 50-70 | Bullish Zone | Uptrend, hold longs |
-| 30-50 | Bearish Zone | Downtrend, hold shorts |
-| 20-30 | Oversold | Watch for long, await confirmation |
-| < 20 | Extreme Oversold | Strong long signal, high bounce probability |
-
-**Divergence (Most Important Reversal Signal)**:
-| Type | Pattern | Meaning |
-|------|---------|---------|
-| Bearish Divergence | Price new high, RSI no new high | Upward momentum exhausted, prepare short |
-| Bullish Divergence | Price new low, RSI no new low | Downward momentum exhausted, prepare long |
-| Hidden Divergence | Price pullback but RSI holds | Trend continuation signal |
-
-**Trend Context**:
-
-- **Uptrend**: RSI 40-50 = support zone (add to longs)
-- **Downtrend**: RSI 50-60 = resistance zone (add to shorts)
-
----
-
-### MACD (Moving Average Convergence Divergence)
-
-**Purpose**: Track momentum changes via EMA differential.
-
-**Formula**:
-$$
-\begin{align}
-\text{DIF (Fast Line)} &= EMA_{12} - EMA_{26} \\
-\text{DEA (Signal Line)} &= EMA_9(\text{DIF}) \\
-\text{Histogram} &= (\text{DIF} - \text{DEA}) \times 2
-\end{align}
-$$
-
-
-**Signal Categories**:
-
-**1. Crossovers**:
-
-| Pattern | Location | Meaning |
-|---------|----------|---------|
-| Golden Cross (DIF above DEA) | Above zero | Strong trend continuation |
-| Golden Cross (DIF above DEA) | Below zero | Possible reversal start |
-| Death Cross (DIF below DEA) | Below zero | Weak trend continuation |
-| Death Cross (DIF below DEA) | Above zero | Possible pullback start |
-
-**2. Zero Line**:
-- DIF/DEA above zero = Bull market, prioritize longs
-- DIF/DEA below zero = Bear market, prioritize shorts
-- Zero line cross = Major trend transition
-
-**3. Histogram**:
-
-| Pattern | Meaning |
-|---------|---------|
-| Red bars expanding | Bullish momentum increasing |
-| Red bars shrinking | Bullish momentum weakening, watch for reversal |
-| Green bars expanding | Bearish momentum increasing |
-| Green bars shrinking | Bearish momentum weakening, watch for bounce |
-
----
-
-### KDJ (Stochastic Oscillator)
-
-**Purpose**: Measure price position relative to range, fast overbought/oversold detection.
-
-**Formula**:
-$$
-\begin{align}
-RSV &= \frac{Close - Low_N}{High_N - Low_N} \times 100 \\
-K &= \frac{2}{3} \times K_{prev} + \frac{1}{3} \times RSV \\
-D &= \frac{2}{3} \times D_{prev} + \frac{1}{3} \times K \\
-J &= 3K - 2D
-\end{align}
-$$
-
-
-**Parameters**: N=9, M1=3, M2=3
-
-**Signals**:
-| Condition | State | Action |
-|-----------|-------|--------|
-| K, D > 80 | Overbought | Watch for short, J > 100 = extreme |
-| K, D < 20 | Oversold | Watch for long, J < 0 = extreme |
-| K crosses above D | Golden Cross | Buy signal (more valid at low levels) |
-| K crosses below D | Death Cross | Sell signal (more valid at high levels) |
-
-**J-line Extremes**: $J > 100$ or $J < 0$ = Short-term extreme, high reversal probability.
-
----
-
-## Volatility Indicators
-
-### Bollinger Bands
-
-**Purpose**: Dynamic support/resistance based on standard deviation.
-
-**Formula**:
-$$
-\begin{align}
-\text{Middle} &= MA_{20} \\
-\text{Upper} &= MA_{20} + 2 \times \sigma \\
-\text{Lower} &= MA_{20} - 2 \times \sigma \\
-\%B &= \frac{\text{Price} - \text{Lower}}{\text{Upper} - \text{Lower}}
-\end{align}
-$$
-
-
-**Price Position**:
-
-| Position | State | Action |
-|----------|-------|--------|
-| Touch upper band | Overbought | Watch for pullback |
-| Touch lower band | Oversold | Watch for bounce |
-| Walking upper band | Strong uptrend | Don't rush to short |
-| Walking lower band | Strong downtrend | Don't rush to long |
-
-**Bandwidth**:
-| Pattern | Meaning | Action |
-|---------|---------|--------|
-| Squeeze (narrow bands) | Low volatility, pending breakout | Wait for direction |
-| Expansion (wide bands) | Trend started | Trade with trend |
-
-**%B Values**:
-- %B > 1 = Price above upper band, extreme overbought
-- %B < 0 = Price below lower band, extreme oversold
-- %B = 0.5 = Price at middle band
-
----
-
-### ATR (Average True Range)
-
-**Purpose**: Measure volatility for stop-loss/take-profit distance.
-
-**Formula**:
-$$
-\begin{align}
-TR &= \max(High - Low,\; \lvert High - PrevClose \rvert,\; \lvert Low - PrevClose \rvert) \\
-ATR &= MA_{14}(TR)
-\end{align}
-$$
-
-
-**Applications**:
-
-| Use Case | Formula | Notes |
-|----------|---------|-------|
-| Stop Loss | Entry ± 1.5-2 × ATR | Avoid normal volatility stop-outs |
-| Take Profit | Entry ± 2-3 × ATR | Reasonable risk/reward |
-| Position Size | Risk Amount / ATR | Reduce size when volatility high |
-
-**Volatility Assessment**:
-- ATR% = ATR / Price × 100
-- ATR% < 3% = Low volatility, can increase leverage
-- ATR% > 5% = High volatility, reduce leverage and size
-
----
-
-## Volume Indicators
-
-### OBV (On-Balance Volume)
-
-**Purpose**: Track money flow via cumulative volume weighted by price direction.
-
-**Rules**:
-- Close > Previous Close: OBV += Today's Volume
-- Close < Previous Close: OBV -= Today's Volume
-- Close = Previous Close: OBV unchanged
-
-**Signals**:
-
-| Pattern | Meaning |
-|---------|---------|
-| Price up + OBV up | Healthy uptrend, sustainable |
-| Price up + OBV down (divergence) | Weak uptrend, reversal warning |
-| Price down + OBV down | Normal pullback, not panic |
-| Price down + OBV up (divergence) | Possible bottom accumulation |
-
----
-
-## Price Structure Indicators
-
-### Fibonacci Retracement
-
-**Purpose**: Identify potential support/resistance based on Fibonacci ratios.
-
-**Key Levels**:
-| Ratio | Meaning | Significance |
-|-------|---------|--------------|
-| 0.236 | Shallow retracement | Strong trends often stop here |
-| 0.382 | Golden retracement | Common support/resistance ★ |
-| 0.500 | Mid retracement | Psychological level |
-| 0.618 | Deep retracement | Most important level ★★★ |
-| 0.786 | Extreme retracement | Trend may be invalidated |
-
-**Extension Levels (for take-profit)**:
-- 1.272: First target
-- 1.618: Second target (golden extension)
-- 2.618: Extreme target
-
-**Application Rules**:
-1. Uptrend pullback to 0.382-0.618 zone = High probability long entry
-2. Downtrend bounce to 0.382-0.618 zone = High probability short entry
-3. Retracement beyond 0.786 = Original trend likely ended
-
----
-
-### Support/Resistance
-
-**Pivot Points Calculation**:
-$$
-\begin{align}
-P &= \frac{High + Low + Close}{3} \\
-R_1 &= 2P - Low, \quad S_1 = 2P - High \\
-R_2 &= P + (High - Low), \quad S_2 = P - (High - Low) \\
-R_3 &= High + 2(P - Low), \quad S_3 = Low - 2(High - P)
-\end{align}
-$$
-**Swing High/Low Identification**:
-
-- Swing High: Highest point with 3-5 lower bars on each side
-- Swing Low: Lowest point with 3-5 higher bars on each side
-- Multiple tests without break = Strong level
-
----
-
-## Derivatives Data Interpretation
-
-### Funding Rate
-
-| Dimension           | Observation                      | Meaning                                       |
-| ------------------- | -------------------------------- | --------------------------------------------- |
-| Positive / Negative | funding > 0 / < 0                | Direction of payment between longs and shorts |
-| Absolute value      | High funding                     | Leveraged crowding + rising trading costs     |
-| Persistence         | Long-term positive / negative    | Structural bullish / bearish market           |
-| Relation to price   | funding ↑ + price ↑              | Healthy trend                                 |
-|                     | funding ↑ + price ↓              | Squeezing / forced positioning structure      |
-|                     | extreme funding + sideways price | Risk accumulation phase                       |
-
-### Open Interest
-
-| Pattern | Meaning | Implication |
-|---------|---------|-------------|
-| OI rising + Price rising | New longs entering | Uptrend confirmed |
-| OI rising + Price falling | New shorts entering | Downtrend confirmed |
-| OI falling + Price rising | Shorts covering | Uptrend may be weak |
-| OI falling + Price falling | Longs liquidating | Downtrend may be weak |
-
-### Liquidation Data
-
-| Pattern | Meaning | Implication |
-|---------|---------|-------------|
-| Heavy long liquidations (side='sell') | Market crashed longs | Possible bottom forming |
-| Heavy short liquidations (side='buy') | Market squeezed shorts | Possible top forming |
-| Dense liquidations | Extreme move | Trend may reverse or accelerate |
-| Sparse liquidations | Normal volatility | Trend likely continues |
-
-### Judgement Based on Derivatives Data
-
-| Price    | OI (Open Interest) | Funding Rate                          | Liquidation Tendency                          | Interpretation & Action                               |
-| -------- | ------------------ | ------------------------------------- | --------------------------------------------- | ----------------------------------------------------- |
-| Rising   | Rising             | Positive, moderately increasing       | Small short liquidations (scattered)          | Strong bullish trend, go long / hold longs            |
-| Rising   | Falling            | Positive, declining from high         | Dense short liquidations (short covering bid) | Short squeeze-driven rebound, reduce longs            |
-| Falling  | Rising             | Negative, steadily decreasing         | Small long liquidations (scattered)           | Strong bearish trend, short / hold shorts             |
-| Falling  | Falling            | Negative, rebounding from extreme low | Dense long liquidations (long capitulation)   | Late-stage long flush, take profit on shorts          |
-| Sideways | Flat or rising     | Extremely positive and not reverting  | Emerging long liquidation pressure            | Risk accumulation, reduce longs / consider short      |
-| Sideways | Flat or rising     | Extremely negative and not recovering | Emerging short liquidation pressure           | Risk accumulation, reduce shorts / consider long      |
-| Sideways | Sharp decline      | Returning toward neutral              | Dual liquidation already occurred             | Market reset, wait for OI recovery before positioning |
+情绪极端可以增强证据，不能覆盖预算或失效约束。普通回撤无需等待市场级极端恐惧。

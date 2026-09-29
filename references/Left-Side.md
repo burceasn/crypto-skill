@@ -1,208 +1,80 @@
-# Left-Side Investing Reference (左侧投资)
+# 左侧交易：决策规则
 
-## Core Concept
+## 目标与边界
 
-Left-side investing (左侧投资 / 左侧交易) means **accumulating an asset while its price is still falling**, before a bottom is confirmed. The "left side" refers to the descending segment of a price cycle — the part of the chart that sits to the *left* of the eventual trough.
+左侧交易是在底部或反转尚未确认时，基于价格吸引力与仍然成立的持有逻辑，承担可控的不确定性，分批建立仓位。可能买得更早，也可能继续承受下跌；不保证更低成本、更高收益或一定反弹。
 
-| Term              | Position on Chart          | Timing                             |
-| ----------------- | -------------------------- | ---------------------------------- |
-| **Left-Side (左侧)** | On the way *down* to a bottom | Before reversal is confirmed        |
-| **Right-Side (右侧)** | On the way *up* from a bottom | After reversal is confirmed         |
+本框架包含普通回撤中的承接、深度调整与恐慌出清阶段的试探。极端恐慌不是唯一入口，缓慢阴跌不自动等于资产失效。固定时间定投是另一种执行约定，不能未经用户选择就替换价格驱动的计划。
 
-The core trade-off: **left-side entries give lower average cost but accept higher uncertainty and temporary drawdown**; right-side entries give higher certainty but a worse price.
+## 三类判断
 
----
+| 判断 | 核心问题 | 对行动的影响 |
+| --- | --- | --- |
+| 趋势状态 | 仍在跌、跌势减缓，还是已经反弹？ | 调整节奏、批次和压力情景 |
+| 价格吸引力 | 相对哪个有依据的区间、估值或预设价位有折价？ | 决定候选建仓区 |
+| 持有逻辑 | 为什么值得持有，什么证据会推翻它？ | 决定能否承担继续下跌 |
 
-## Core Philosophy
+历史高点不等于合理价值，跌了很多不等于便宜。技术支撑只提供价格参照。CLI 不提供财务、偿付能力、代币解锁、经营或公司估值数据；相关判断需有可核实的外部依据。无法核实时保留未知，给条件性计划，不声称已确认资产健康。
 
-1. **Buy fear, not greed** — Enter when sentiment is at an extreme, not when everyone is already bullish.
-2. **Time over timing** — Precision is impossible. Accept being early; profit comes from the eventual cycle, not from calling the exact bottom.
-3. **Position management over prediction** — No one catches the bottom. Success comes from *how* you buy (staging), not *whether* you guessed the low.
-4. **Discount anchoring** — Every tranche is justified by value/discount, not by hope of a bounce.
-5. **Survival first** — A left-side position must be structured to survive a deeper drop without forced exit.
+## 入场资格与增强证据
 
-## Market Conditions Favoring Left-Side Entry
+给出可执行的新增买入建议之前，应具备：
 
-Enter left-side only when **multiple capitulation signals converge**. Use `indicators.md` for signal interpretation.
+- 可验证且足够新鲜的目标标的数据，以及明确周期。
+- 具体价格依据：预先约定的阶梯、历史区间、有效摆动结构或有来源的估值区间，并解释锚点为何仍适用。
+- 有依据的持有逻辑，且没有已知关键失效证据。已知事实与用户假设分开。
+- 总投入上限、剩余预算、分批方式，以及暂停或退出条件。缺少个人预算时只给按计划预算计的示意比例。
+- 继续下跌和较长等待期的承受方案，不靠“必然反弹”使计划成立。
 
-### Sentiment Capitulation
+超卖、负资金费率、恐慌出清、底背离、下跌动量衰减和卖压减少属于增强证据，结合目标资产历史基准评价。无需所有类别同时满足。不把 RSI、KDJ 和布林带当成完全独立的三票，不设未经回测的胜率或固定扣分。
 
-| Signal (from skill data)            | Left-Side Trigger                             |
-| ----------------------------------- | --------------------------------------------- |
-| Fear & Greed Index                  | Extreme Fear (< 20), sustained                 |
-| Funding Rate                        | Deeply negative and persistent (shorts pay longs) |
-| Long/Short Ratio                    | Extreme low long ratio (crowd is short)        |
-| Liquidation Data                    | Heavy long liquidations (capitulation flush)   |
+缺少增强证据可以降低首批投入、拉开批次或观察，但需说明原因。确认反转支持重新评估，不是首笔买入的统一前提。
 
-### Technical Oversold
+## 不同阶段的处理
 
-| Signal (from indicators.md)     | Left-Side Trigger                                   |
-| ------------------------------- | --------------------------------------------------- |
-| RSI (14)                        | < 30 oversold; < 20 extreme (bullish divergence ideal) |
-| KDJ                             | K, D < 20, J < 0 (extreme oversold)                 |
-| Bollinger %B                    | < 0 (price below lower band)                         |
-| MACD Histogram                  | Bearish bars shrinking (momentum exhaustion)         |
+| 情形 | 评估重点 | 可选行动 |
+| --- | --- | --- |
+| 普通回撤进入预定区域，逻辑有效 | 折价是否足够、预算是否充足 | 小额试探或按计划分批 |
+| 继续下跌，未到下一档 | 是否出现新失效证据 | 等待既定触发，不随价格改计划 |
+| 深跌并出现恐慌 | 承接依据、流动性和压力情景 | 条件成立才分批，不一次满仓 |
+| 缓慢阴跌，无恐慌 | 价格吸引力与持有逻辑如何变化 | 条件评估，不直接归类“死亡” |
+| 大涨后远离原建仓区 | 剩余空间与回撤区域 | 不因趋势强追买，分别评估持有和等待 |
+| 关键基本面或机制失效 | 旧逻辑是否被推翻 | 暂停买入，评估减仓或退出 |
+| 数据不足或身份不明 | 哪项判断无法成立 | 标明未知，补证据或给条件性方案 |
 
-### Price Structure Support
+这是分支框架，不是形态触发的自动信号表。大涨不自动要求卖出，下跌不自动要求买入。
 
-| Signal                          | Left-Side Trigger                                    |
-| ------------------------------- | ---------------------------------------------------- |
-| Fibonacci Retracement           | 0.618 – 0.786 retracement zone of the prior up-leg    |
-| Horizontal Support              | Major swing low / historical support, multiple tests  |
-| Long MA                         | Weekly MA50 / MA200 as institutional floor            |
+## 分批与资金约束
 
-**Convergence rule**: a valid left-side setup requires **≥ 1 sentiment signal + ≥ 1 technical signal + ≥ 1 structural level** simultaneously. A single oversold reading alone is *not* sufficient.
+沿用用户的周期、已有仓位、总预算、现金、组合风险上限和市场类型。只询问影响计划的重要缺口，不虚构账户资料。
 
----
+选择明确的方法：
 
-## Entry Methods
+- 价格阶梯：到达有依据的不同区域才触发下一批。
+- 等额分批：每批占固定计划预算比例。
+- 递增分批：较低区域可投入更多，但总额事先封顶，不借钱或无限翻倍。
+- 时间定投：仅在用户选择时使用；不依赖恐慌或反转确认，仍受逻辑和预算约束。
 
-### 1. Fixed-Interval DCA (定投)
+纯示意计划可将固定预算 B 分为 20%、25%、25%，另留 30% 未承诺资金。比例均以原始 B 为分母；这不是所有资产的默认配置，各档价格需另有依据。
 
-Buy a fixed amount at fixed time intervals regardless of price.
+检查已投入、拟新增与保留资金之和不超过预算，并计入原有持仓。不能同时要求用尽预算和永久保留预算比例。仓位上限与档间跌幅由用户约束和情景分析决定，不将统一的 30% 仓位等数字写成理论定律。
 
-$$ \text{Shares}_t = \dfrac{C}{P_t} $$
+## 暂停、失效与退出
 
-where $C$ = fixed fiat allocation per period, $P_t$ = price at time $t$.
+事先区分：
 
-- **Pros**: No timing skill needed, lowest psychological load.
-- **Cons**: Highest average cost if market only moves down then sharply up.
-- **Best for**: Long-term position building, no leverage.
+- **价格风险线**：用户承受范围或预定结构区域失守；明确采用盘中、收盘或持续破位判定，不事后挪线。
+- **持有逻辑失效**：基本面、偿付能力、产品机制或原始论据被推翻。
+- **预算耗尽**：停止新增，更低价格不产生额外预算。
+- **时间复核**：达到预定期限，检查资金占用和论据变化。
+- **数据故障**：暂停依赖该数据的判断，不当作价格信号。
 
-### 2. Price-Level Ladder (网格建仓 / 阶梯建仓)
+MACD 为负、普通波动或跌破短均线本身不等于逻辑失效。技术破位可触发预定风控，但不能直接宣告资产“死亡”。下一档价格不能覆盖已经触发的失效条件。
 
-Place buy orders at predefined descending price levels.
+ATR 用于波动、批次间距和压力情景，不统一套用紧 ATR 止损。采用价格止损时解释其周期适配性，计入滑点与跳空；止损价不保证实际损失。
 
-| Level | Price Drop from Start | Allocation |
-| ----- | --------------------- | ---------- |
-| 1     | 0% (start)            | 10%        |
-| 2     | -10%                  | 20%        |
-| 3     | -20%                  | 30%        |
-| 4     | -30%                  | 40%        |
+## 市场类型
 
-- **Pros**: Systematic, lower average cost than DCA in trending-down markets.
-- **Cons**: Gaps may not fill; requires price to drop to accumulate.
+默认按不借贷的现货资金计划讨论，避免自动引入杠杆。查询 SWAP 数据不等于建议交易 SWAP。
 
-### 3. Fibonacci-Level Accumulation
-
-Allocate tranches at Fibonacci retracement levels (0.382, 0.5, 0.618, 0.786) of the prior impulse leg.
-
-$$ \text{Tranche}_i \text{ at } \text{Price} = \text{High} - (\text{High} - \text{Low}) \times F_i $$
-
-where $F_i \in \{0.382, 0.5, 0.618, 0.786\}$.
-
-- **Pros**: Anchored to structural levels where reversals are statistically frequent.
-- **Cons**: Assumes a prior leg is correctly identified.
-
-### 4. Pyramiding Down (倒金字塔 / 越跌越买)
-
-Increase size as price falls, weighted toward the lower levels.
-
-$$ \text{Size}_i = \text{Base} \times (1 + i \times k) $$
-
-- **Pros**: Lowest possible average cost.
-- **Cons**: Highest risk — amplifies loss if the asset never recovers. **Must be capped.**
-
-> **CRITICAL**: Pyramiding down must always be bounded by a hard total-allocation cap and a thesis-invalidation level. Unbounded "越跌越买" is the classic path to ruin.
-
----
-
-## Position Sizing Rules
-
-| Rule                      | Limit                                   |
-| ------------------------- | --------------------------------------- |
-| Total allocation to asset | ≤ 30% of portfolio (per `STRATEGY.md`)  |
-| Number of tranches        | 3 – 5 (never fewer than 3)              |
-| Max tranche size          | ≤ 50% of remaining budget               |
-| Reserve requirement       | Always keep ≥ 30% cash reserve          |
-| Leverage                  | **None** (left-side + leverage = forced liquidation risk) |
-
-**Tranche-size progression** (choose one, never mix ad-hoc):
-
-- **Equal**: each tranche = total / N (safest)
-- **Decreasing**: larger early, smaller late (front-loads conviction)
-- **Increasing (pyramid)**: smaller early, larger late (lowest avg cost, highest risk)
-
----
-
-## Risk Management
-
-### Thesis Invalidation (the real stop-loss)
-
-Left-side investing does **not** use tight ATR stops (they'd be hit by normal volatility on the way down). Instead, define a **structural invalidation level**:
-
-| Invalidation Trigger                             | Action                         |
-| ------------------------------------------------ | ------------------------------ |
-| Price closes below the major structural support  | Exit / stop adding             |
-| Fibonacci 0.786 level decisively broken          | Reassess — trend likely dead    |
-| **Fundamental** breakdown (not just price)       | Exit fully                     |
-| Funding/sentiment *stays* negative with no recovery after prolonged period | Reassess thesis |
-
-### Hard Rules
-
-1. **Never average down into a fundamentally broken asset** — only into a fundamentally sound asset in a sentiment-driven decline.
-2. **Never use leverage** on a left-side position.
-3. **Never deploy the full budget at once** — staging is the entire edge.
-4. **Never add below invalidation** — if the level breaks, you stop, you do not "get a better price."
-5. **Max tolerable drawdown** — pre-commit a portfolio-level drawdown limit (e.g., -20%) and honor it.
-
-### Distinguishing "Dip" from "Death"
-
-| Question                       | Dip (buyable)                    | Death (avoid)                    |
-| ------------------------------ | -------------------------------- | -------------------------------- |
-| Is the decline sentiment-driven? | Yes — panic, liquidation flush  | No — fundamental deterioration  |
-| Is the asset structurally sound? | Yes (network/usage intact)      | No (broken model, insolvency)   |
-| Are capitulation signals present? | Yes (extreme fear, flush)      | No (slow bleed, no flush)       |
-| Is this a major support level?   | Yes (historical support, fib)  | No (free-fall, no floor)        |
-
----
-
-## Standard Left-Side Workflow (MANDATORY)
-
-### Step 1: Qualify the Asset
-
-- Confirm the asset is fundamentally sound (this is a *value* decline, not a *death* decline).
-- If fundamentals are broken → **do not left-side invest**, regardless of oversold signals.
-
-### Step 2: Identify Structural Levels
-
-- Fetch K-line data (`candles`) and mark: major swing low, horizontal support, Fibonacci 0.618–0.786 zone, weekly MA50/MA200.
-
-### Step 3: Confirm Capitulation
-
-- Fetch sentiment data: Fear & Greed index, funding rate, long/short ratio, liquidation records.
-- Require ≥ 1 sentiment capitulation signal.
-
-### Step 4: Build the Tranche Plan
-
-- Decide entry method (DCA / ladder / Fibonacci / pyramid).
-- Define: total allocation, number of tranches, size per tranche, price level per tranche, reserve %, invalidation level.
-
-### Step 5: Execute with Discipline
-
-- Place limit orders at predefined levels (no market-chasing).
-- Execute exactly per plan — no improvising larger sizes "because it dropped more."
-
-### Step 6: Monitor & Honor Invalidation
-
-- Re-evaluate at each tranche fill and at the invalidation level.
-- If invalidation breaks → stop adding, reassess exit.
-
----
-
-## Common Mistakes (FORBIDDEN)
-
-- **All-in at the first dip** — violates staging; the price can always go lower.
-- **Leveraged bottom-fishing** — a deeper dip liquidates you before the recovery.
-- **Averaging into a dead asset** — conflating "cheap" with "value."
-- **No invalidation level** — turning a losing trade into a permanent bag-holder.
-- **Ignoring time** — left-side positions can stay underwater for months; exit logic must account for this.
-- **Treating left-side as a fast trade** — it is a *position* strategy, not a scalp.
-
----
-
-## Integration Notes
-
-- Pair with `indicators.md` for exact interpretation of RSI, KDJ, Bollinger, Fibonacci, funding, and liquidation signals.
-- Pair with `STRATEGY.md` for the overall analysis workflow, multi-timeframe verification, and portfolio risk limits.
-- Left-side entries still respect higher-timeframe context: a valid left-side long should not fight a structurally intact higher-timeframe downtrend without capitulation evidence.
+公司或贵金属只有 SWAP 数据时，明确分析对象为该合约，不虚构现货可买。实际合约计划另外考虑保证金、强平、资金费率、基差及条款；“1 倍”也不等于股票或无强平风险的现货。缺少这些约束时提供价格观察与条件性计划。
